@@ -184,24 +184,35 @@ float accuracy(const std::vector<float> &y_true,
 
 using namespace genetic;
 
+bool compareFitness(const genetic::program *a,
+                    const genetic::program *b) {
+  if (a->raw_fitness_ < b->raw_fitness_) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void insertionSortPrograms(genetic::program *programs, int size) {
-  // set any nan values to +inf
-  for (int i = 0; i < size; ++i) {
+  std::vector<genetic::program *> order(size);
+
+  for (int i = 0; i < size; i++) {
     if (std::isnan(programs[i].raw_fitness_)) {
       programs[i].raw_fitness_ = std::numeric_limits<float>::max();
     }
+    order[i] = &programs[i];
   }
 
-  // do insertion sort
-  for (int i = 1; i < size; i++) {
-    genetic::program key(programs[i]);
-    int j = i - 1;
+  std::stable_sort(order.begin(), order.end(), compareFitness);
 
-    while (j >= 0 && (programs[j].raw_fitness_ > key.raw_fitness_)) {
-      programs[j + 1] = programs[j];
-      j--;
-    }
-    programs[j + 1] = key;
+  std::vector<genetic::program> sorted(size);
+
+  for (int i = 0; i < size; i++) {
+    sorted[i] = *order[i];
+  }
+
+  for (int i = 0; i < size; i++) {
+    programs[i] = sorted[i];
   }
 }
 

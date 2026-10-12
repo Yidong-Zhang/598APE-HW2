@@ -1,0 +1,133 @@
+Compiling src/genetic.cpp...
+Compiling src/node.cpp...
+Compiling src/philox_rng.cpp...
+Compiling src/program.cpp...
+In file included from src/program.cpp:11:
+include/program.h: In constructor ‘genetic::program::program()’:
+include/program.h:62:14: warning: ‘genetic::program::mut_type’ will be initialized after [-Wreorder]
+   62 |   mutation_t mut_type;
+      |              ^~~~~~~~
+include/program.h:52:9: warning:   ‘genetic::node* genetic::program::nodes’ [-Wreorder]
+   52 |   node *nodes;
+      |         ^~~~~
+src/program.cpp:56:1: warning:   when initialized here [-Wreorder]
+   56 | program::program()
+      | ^~~~~~~
+src/program.cpp: In function ‘void genetic::crossover(const program&, const program&, program&, const param&, PhiloxEngine&)’:
+src/program.cpp:398:29: warning: unused parameter ‘params’ [-Wunused-parameter]
+  398 |                const param &params, PhiloxEngine &rng) {
+      |                ~~~~~~~~~~~~~^~~~~~
+src/program.cpp: In function ‘void genetic::hoist_mutation(const program&, program&, const param&, PhiloxEngine&)’:
+src/program.cpp:460:71: warning: unused parameter ‘params’ [-Wunused-parameter]
+  460 | void hoist_mutation(const program &prog, program &p_out, const param &params,
+      |                                                          ~~~~~~~~~~~~~^~~~~~
+src/genetic.cpp: In function ‘void genetic::symFit(const float*, const float*, const float*, int, int, param&, program*&, std::vector<std::vector<program> >&)’:
+src/genetic.cpp:396:70: warning: unused parameter ‘n_cols’ [-Wunused-parameter]
+  396 |             const float *sample_weights, const int n_rows, const int n_cols,
+      |                                                            ~~~~~~~~~~^~~~~~
+src/genetic.cpp: In function ‘void genetic::symTransform(const float*, const param&, program* const&, int, int, float*)’:
+src/genetic.cpp:543:29: warning: unused parameter ‘n_cols’ [-Wunused-parameter]
+  543 |                   const int n_cols, float *output) {
+      |                   ~~~~~~~~~~^~~~~~
+In file included from src/program.cpp:8:
+include/fitness.h: In function ‘void genetic::weightedPearson(uint64_t, uint64_t, const math_t*, const math_t*, const math_t*, math_t*) [with math_t = float]’:
+include/fitness.h:24:10: warning: ‘y_mu’ may be used uninitialized [-Wmaybe-uninitialized]
+   24 |   math_t y_mu;                       // output mean
+      |          ^~~~
+Building benchmark program...
+In file included from benchmark/genetic_benchmark.cpp:23:
+include/ctimer.h: In function ‘void ctimer_reset(ctimer_t*)’:
+include/ctimer.h:359:37: warning: missing initializer for member ‘timespec::tv_nsec’ [-Wmissing-field-initializers]
+  359 |     t->elapsed = (struct timespec){0};
+      |                                     ^
+In file included from /usr/include/c++/15/algorithm:63,
+                 from benchmark/genetic_benchmark.cpp:6:
+/usr/include/c++/15/bits/stl_algo.h: In instantiation of ‘void std::__insertion_sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = genetic::program*; _Compare = __gnu_cxx::__ops::_Iter_comp_iter<bool (*)(const genetic::program&, const genetic::program&)>]’:
+/usr/include/c++/15/bits/stl_algo.h:2760:25:   required from ‘void std::__inplace_stable_sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = genetic::program*; _Compare = __gnu_cxx::__ops::_Iter_comp_iter<bool (*)(const genetic::program&, const genetic::program&)>]’
+ 2760 |           std::__insertion_sort(__first, __last, __comp);
+      |           ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:5032:28:   required from ‘void std::__stable_sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = genetic::program*; _Compare = __gnu_cxx::__ops::_Iter_comp_iter<bool (*)(const genetic::program&, const genetic::program&)>]’
+ 5032 |         std::__inplace_stable_sort(__first, __last, __comp);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:5108:36:   required from ‘void std::stable_sort(_RAIter, _RAIter, _Compare) [with _RAIter = genetic::program*; _Compare = bool (*)(const genetic::program&, const genetic::program&)]’
+ 5108 |       _GLIBCXX_STD_A::__stable_sort(__first, __last,
+      |                                    ^
+benchmark/genetic_benchmark.cpp:203:19:   required from here
+  203 |   std::stable_sort(programs, programs + size, compareFitness);
+      |   ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:1781:17: error: no matching function for call to ‘genetic::program::program(std::remove_reference<genetic::program&>::type)’
+ 1781 |                 __val = _GLIBCXX_MOVE(*__i);
+      |                 ^~~~~
+/usr/include/c++/15/bits/stl_algo.h:1781:17: note: there are 2 candidates
+/usr/include/c++/15/bits/stl_algo.h:1781:17: note: some candidates omitted; use ‘-fdiagnostics-all-candidates’ to display them
+In file included from /usr/include/c++/15/bits/stl_pair.h:61,
+                 from /usr/include/c++/15/bits/stl_algobase.h:64,
+                 from /usr/include/c++/15/algorithm:62:
+/usr/include/c++/15/bits/move.h: In instantiation of ‘std::_Require<std::__not_<std::__is_tuple_like<_Tp> >, std::is_move_constructible<_Tp>, std::is_move_assignable<_Tp> > std::swap(_Tp&, _Tp&) [with _Tp = genetic::program; _Require<__not_<__is_tuple_like<_Tp> >, is_move_constructible<_Tp>, is_move_assignable<_Tp> > = void]’:
+/usr/include/c++/15/bits/stl_algobase.h:186:11:   required from ‘void std::iter_swap(_ForwardIterator1, _ForwardIterator2) [with _ForwardIterator1 = genetic::program*; _ForwardIterator2 = genetic::program*]’
+  186 |       swap(*__a, *__b);
+      |       ~~~~^~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:2449:20:   required from ‘void std::__merge_without_buffer(_BidirectionalIterator, _BidirectionalIterator, _BidirectionalIterator, _Distance, _Distance, _Compare) [with _BidirectionalIterator = genetic::program*; _Distance = long int; _Compare = __gnu_cxx::__ops::_Iter_comp_iter<bool (*)(const genetic::program&, const genetic::program&)>]’
+ 2449 |             std::iter_swap(__first, __middle);
+      |             ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:2766:34:   required from ‘void std::__inplace_stable_sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = genetic::program*; _Compare = __gnu_cxx::__ops::_Iter_comp_iter<bool (*)(const genetic::program&, const genetic::program&)>]’
+ 2766 |       std::__merge_without_buffer(__first, __middle, __last,
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2767 |                                   __middle - __first,
+      |                                   ~~~~~~~~~~~~~~~~~~~
+ 2768 |                                   __last - __middle,
+      |                                   ~~~~~~~~~~~~~~~~~~
+ 2769 |                                   __comp);
+      |                                   ~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:5032:28:   required from ‘void std::__stable_sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = genetic::program*; _Compare = __gnu_cxx::__ops::_Iter_comp_iter<bool (*)(const genetic::program&, const genetic::program&)>]’
+ 5032 |         std::__inplace_stable_sort(__first, __last, __comp);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:5108:36:   required from ‘void std::stable_sort(_RAIter, _RAIter, _Compare) [with _RAIter = genetic::program*; _Compare = bool (*)(const genetic::program&, const genetic::program&)]’
+ 5108 |       _GLIBCXX_STD_A::__stable_sort(__first, __last,
+      |                                    ^
+benchmark/genetic_benchmark.cpp:203:19:   required from here
+  203 |   std::stable_sort(programs, programs + size, compareFitness);
+      |   ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/move.h:235:11: error: no matching function for call to ‘genetic::program::program(std::remove_reference<genetic::program&>::type)’
+  235 |       _Tp __tmp = _GLIBCXX_MOVE(__a);
+      |           ^~~~~
+/usr/include/c++/15/bits/move.h:235:11: note: there are 2 candidates
+/usr/include/c++/15/bits/move.h:235:11: note: some candidates omitted; use ‘-fdiagnostics-all-candidates’ to display them
+/usr/include/c++/15/bits/stl_algo.h: In instantiation of ‘_RandomAccessIterator std::_V2::__rotate(_RandomAccessIterator, _RandomAccessIterator, _RandomAccessIterator, std::random_access_iterator_tag) [with _RandomAccessIterator = genetic::program*]’:
+/usr/include/c++/15/bits/stl_algo.h:1341:27:   required from ‘_FIter std::_V2::rotate(_FIter, _FIter, _FIter) [with _FIter = genetic::program*]’
+ 1341 |       return std::__rotate(__first, __middle, __last,
+      |              ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1342 |                            std::__iterator_category(__first));
+      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:2477:15:   required from ‘void std::__merge_without_buffer(_BidirectionalIterator, _BidirectionalIterator, _BidirectionalIterator, _Distance, _Distance, _Compare) [with _BidirectionalIterator = genetic::program*; _Distance = long int; _Compare = __gnu_cxx::__ops::_Iter_comp_iter<bool (*)(const genetic::program&, const genetic::program&)>]’
+ 2477 |         = std::rotate(__first_cut, __middle, __second_cut);
+      |           ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:2766:34:   required from ‘void std::__inplace_stable_sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = genetic::program*; _Compare = __gnu_cxx::__ops::_Iter_comp_iter<bool (*)(const genetic::program&, const genetic::program&)>]’
+ 2766 |       std::__merge_without_buffer(__first, __middle, __last,
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2767 |                                   __middle - __first,
+      |                                   ~~~~~~~~~~~~~~~~~~~
+ 2768 |                                   __last - __middle,
+      |                                   ~~~~~~~~~~~~~~~~~~
+ 2769 |                                   __comp);
+      |                                   ~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:5032:28:   required from ‘void std::__stable_sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = genetic::program*; _Compare = __gnu_cxx::__ops::_Iter_comp_iter<bool (*)(const genetic::program&, const genetic::program&)>]’
+ 5032 |         std::__inplace_stable_sort(__first, __last, __comp);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:5108:36:   required from ‘void std::stable_sort(_RAIter, _RAIter, _Compare) [with _RAIter = genetic::program*; _Compare = bool (*)(const genetic::program&, const genetic::program&)]’
+ 5108 |       _GLIBCXX_STD_A::__stable_sort(__first, __last,
+      |                                    ^
+benchmark/genetic_benchmark.cpp:203:19:   required from here
+  203 |   std::stable_sort(programs, programs + size, compareFitness);
+      |   ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_algo.h:1262:30: error: no matching function for call to ‘genetic::program::program(std::remove_reference<genetic::program&>::type)’
+ 1262 |                   _ValueType __t = _GLIBCXX_MOVE(*__p);
+      |                              ^~~
+/usr/include/c++/15/bits/stl_algo.h:1262:30: note: there are 2 candidates
+/usr/include/c++/15/bits/stl_algo.h:1262:30: note: some candidates omitted; use ‘-fdiagnostics-all-candidates’ to display them
+/usr/include/c++/15/bits/stl_algo.h:1285:30: error: no matching function for call to ‘genetic::program::program(std::remove_reference<genetic::program&>::type)’
+ 1285 |                   _ValueType __t = _GLIBCXX_MOVE(*(__p + __n - 1));
+      |                              ^~~
+/usr/include/c++/15/bits/stl_algo.h:1285:30: note: there are 2 candidates
+/usr/include/c++/15/bits/stl_algo.h:1285:30: note: some candidates omitted; use ‘-fdiagnostics-all-candidates’ to display them
+make: *** [Makefile:35: genetic_benchmark] Error 1

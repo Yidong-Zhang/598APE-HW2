@@ -1,0 +1,70 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 1000  of event 'cpu-clock:u'
+# Event count (approx.): 10101010000
+#
+# Overhead  Symbol                                                                                                                    IPC   [IPC Coverage]
+# ........  ........................................................................................................................  ....................
+#
+    76.00%  [.] void genetic::execute_kernel<20>(genetic::program*, float const*, float*, unsigned long, unsigned long)               -      -            
+            |
+            ---genetic::find_batched_fitness(int, genetic::program*, float*, genetic::param const&, int, float const*, float const*, float const*)
+               genetic::set_batched_fitness(int, std::vector<genetic::program, std::allocator<genetic::program> >&, genetic::param const&, int, float const*, float const*, float const*)
+               genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int)
+               genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&)
+               run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+               main
+               __libc_start_call_main
+               __libc_start_main_impl (inlined)
+               _start
+
+    14.70%  [.] genetic::detail::evaluate_node(genetic::node const&, float const*, unsigned long, unsigned long, float const*)        -      -            
+            |
+            ---void genetic::execute_kernel<20>(genetic::program*, float const*, float*, unsigned long, unsigned long)
+               genetic::find_batched_fitness(int, genetic::program*, float*, genetic::param const&, int, float const*, float const*, float const*)
+               genetic::set_batched_fitness(int, std::vector<genetic::program, std::allocator<genetic::program> >&, genetic::param const&, int, float const*, float const*, float const*)
+               genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int)
+               genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&)
+               run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+               main
+               __libc_start_call_main
+               __libc_start_main_impl (inlined)
+               _start
+
+     3.20%  [.] __cosf_fma                                                                                                            -      -            
+            |          
+             --1.30%--sinf_poly (inlined)
+                       __cosf_fma
+                       void genetic::execute_kernel<20>(genetic::program*, float const*, float*, unsigned long, unsigned long)
+                       genetic::find_batched_fitness(int, genetic::program*, float*, genetic::param const&, int, float const*, float const*, float const*)
+                       genetic::set_batched_fitness(int, std::vector<genetic::program, std::allocator<genetic::program> >&, genetic::param const&, int, float const*, float const*, float const*)
+                       genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int)
+                       genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&)
+                       run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+                       main
+                       __libc_start_call_main
+                       __libc_start_main_impl (inlined)
+                       _start
+
+     2.50%  [.] __logf_fma                                                                                                            -      -            
+            |
+            ---void genetic::execute_kernel<20>(genetic::program*, float const*, float*, unsigned long, unsigned long)
+               genetic::find_batched_fitness(int, genetic::program*, float*, genetic::param const&, int, float const*, float const*, float const*)
+               genetic::set_batched_fitness(int, std::vector<genetic::program, std::allocator<genetic::program> >&, genetic::param const&, int, float const*, float const*, float const*)
+               genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int)
+               genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&)
+               run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+               main
+               __libc_start_call_main
+               __libc_start_main_impl (inlined)
+               _start
+
+     1.60%  [.] __sinf_fma                                                                                                            -      -            
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#

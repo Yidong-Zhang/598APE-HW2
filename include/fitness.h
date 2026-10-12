@@ -296,6 +296,7 @@ void logLoss(const uint64_t n_samples, const uint64_t n_progs, const math_t *Y,
   // adapt it for the weighted version (turned out pre-multiplying N just
   // worked). Improving numerical stability in CUDA is ... :)
 
+  #pragma omp parallel for schedule(static)
   for (uint64_t pid = 0; pid < n_progs; ++pid) {
     for (uint64_t i = 0; i < n_samples; ++i) {
       math_t logsig;
