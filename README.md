@@ -9,6 +9,11 @@ The inherited project description and examples follow this guide.
 
 Repository: https://github.com/Yidong-Zhang/598APE-HW2
 
+```bash
+git clone https://github.com/Yidong-Zhang/598APE-HW2.git
+cd 598APE-HW2
+```
+
 ### Dependencies and Tested Environment
 
 Required for building/running: GNU make, a C++17 compiler, and OpenMP support
@@ -57,7 +62,7 @@ compiler jobs, not the benchmark's runtime thread count.
 
 ### Build the Original Baseline
 
-Start with the original assignment source, before our edits. Download it from
+Start with the original assignment source before our edits. Download it from
 [the original revision on GitHub](https://github.com/Yidong-Zhang/598APE-HW2/tree/f19cc633664c9a333b208049770424d58d14909e).
 The current main branch contains the final changes; compiling main without
 optimization flags does not restore the original source.
@@ -71,6 +76,11 @@ make -j4 CXXFLAGS='-std=c++17 -Wall -Wextra -I include -I.'
 ```
 
 #### Baseline Tests
+
+Our original measurements are stored directly under `results/`.
+The reproduction commands below instead write to `results/reproduction/`
+to avoid overwriting those saved records. Only the output location differs;
+this does not change the benchmark computation.
 
 After compiling this stage, run each command below from its source folder.
 Outputs go to `results/reproduction/` to preserve the original measurements.
@@ -776,7 +786,7 @@ Self shares describe aggregate user-space CPU samples across threads, not exact
 wall-time fractions. Inlining changes symbol attribution; do not double-count
 caller-tree shares. Historical reports and the reasons for changing profiled
 workloads are listed under PROF-001 through PROF-006 in the experiment log.
-PROF-007 was proposed but not executed. Do not treat proposed commands as results.
+
 
 ### Memory Validation and FIX-001
 
@@ -817,18 +827,7 @@ Reachable records originate in libgomp. No suppressions were applied. The
 four-thread reports are **not zero-error reports**; `--error-exitcode=99` can
 produce a nonzero command marker even without a program crash.
 
-Evidence: `results/memcheck-diabetes.log`,
-`results/memcheck-fix01-diabetes.log`,
-`results/memcheck-fix01-diabetes-1thread.log`, and
-`results/memcheck-fix01-cancer.log`. VM diff comparisons confirmed post-fix
-diabetes/cancer printed formulas and metrics match OPT-006 before timing.
-Image-path Memcheck, race checks, and ordinary post-fix timings were not run.
-The compiler's Pearson `y_mu` warning also remains unresolved; these five
-benchmarks use MSE/log loss and do not validate Pearson behavior.
 
-Commit source, documentation and diagnostic text outputs together. Keep
-executable backups, object files and binary perf `.data` captures out of source
-commits; textual perf reports suffice for inspecting the recorded findings.
 
 ## Original Project Guide
 
