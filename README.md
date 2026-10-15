@@ -7,8 +7,7 @@ memory-leak fix. The detailed commands, original results, profiling evidence,
 failed attempts, and limitations are recorded in [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md).
 The inherited project description and examples follow this guide.
 
-Repository: https://github.com/Yidong-Zhang/598APE-HW2 (private; reviewers need access).
-Run commands from the repository root in Bash. Keep this repository private.
+Repository: https://github.com/Yidong-Zhang/598APE-HW2 .
 
 ### Dependencies and Tested Environment
 
@@ -17,10 +16,7 @@ for optimized parallel builds. GNU `time` provides external process statistics.
 Racket with `racket/draw` renders the generated image programs. `perf` and
 Valgrind are diagnostic tools, not required for an ordinary benchmark run.
 
-Tested VM: Linux x86-64, kernel 7.0.0-31-generic, four VMware vCPUs reporting
-Intel Xeon Silver 4216 @ 2.10 GHz, about 15 GiB RAM; GCC 15.2.0,
-perf 7.0.14, Racket 8.18 [cs], Valgrind 3.26.0. Physical CPU resources are not
-necessarily exclusive. Other machines need not reproduce identical timings.
+Test on VM
 
 On an Ubuntu VM with sudo access, basic dependencies can be installed with:
 
