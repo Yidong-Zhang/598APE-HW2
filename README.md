@@ -7,7 +7,7 @@ memory-leak fix. The detailed commands, original results, profiling evidence,
 failed attempts, and limitations are recorded in [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md).
 The inherited project description and examples follow this guide.
 
-Repository: https://github.com/Yidong-Zhang/598APE-HW2 .
+Repository: https://github.com/Yidong-Zhang/598APE-HW2 
 
 ### Dependencies and Tested Environment
 
@@ -16,7 +16,8 @@ for optimized parallel builds. GNU `time` provides external process statistics.
 Racket with `racket/draw` renders the generated image programs. `perf` and
 Valgrind are diagnostic tools, not required for an ordinary benchmark run.
 
-Test on VM
+All experiments were conducted on the course-provided VM. Tool versions and
+detailed environment records are available in [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md).
 
 On an Ubuntu VM with sudo access, basic dependencies can be installed with:
 
@@ -59,51 +60,33 @@ compiler jobs, not the benchmark's runtime thread count.
 
 ### Build the Original Baseline
 
-Extract the original tracked source into a separate directory, leaving current
-source and uncommitted work untouched. Use a new directory for each extraction:
+Start with the original assignment source, before our edits. Download it from
+[the original revision on GitHub](https://github.com/Yidong-Zhang/598APE-HW2/tree/f19cc633664c9a333b208049770424d58d14909e).
+The current main branch contains the final changes; compiling main without
+optimization flags does not restore the original source.
+
+In the original source folder, build the baseline and run all five tasks using
+the test commands below. Keep the results under the baseline label.
 
 ```bash
-mkdir ../hw2-baseline
-git archive f19cc633664c9a333b208049770424d58d14909e | tar -x -C ../hw2-baseline
-cd ../hw2-baseline
 make clean
 make -j4 CXXFLAGS='-std=c++17 -Wall -Wextra -I include -I.'
 ```
 
-To obtain the compiler-only OPT-001 control in that baseline directory:
+### Apply Optimizations in Experiment Order
+
+Starting from the baseline source above, apply the following changes in order.
+Keep each change for the next step. Clean and rebuild after each stage, run
+all five tasks, and save results under that stage's name. This follows our
+actual experiment sequence; separate stage commits are not required.
+
+1. **OPT-001:** source unchanged; enable `-O2`:
 
 ```bash
 make clean
 make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.'
 ```
 
-Measure each build before replacing it, and use separate result directories.
-The five-task commands below work in either checkout.
-
-### Build the Current Optimized Source
-
-Return to the optimized repository directory before building. These flags
-require the source changes listed above; compiler flags alone do not recreate
-OPT-002 through OPT-006.
-
-```bash
-make clean
-make -j4 CXXFLAGS='-std=c++17 -O3 -fopenmp -Wall -Wextra -I include -I.'
-```
-
-Current source should include FIX-001 when reproducing memory checks. The
-performance table below was collected **before FIX-001**. No normal post-fix
-performance measurements are claimed. Do not identify a newly measured fixed
-build as a reproduction of the exact historical OPT-006 source configuration.
-
-### Reconstruct Intermediate Source Stages
-
-The experimental stages were not recorded as six independently confirmed Git
-commits. To evaluate each change, extract another copy of the original revision
-as above and apply the following edits in order, measuring after each stage.
-Do not reset or overwrite your working optimized checkout.
-
-1. **OPT-001:** source unchanged; build with `-O2`.
 2. **OPT-002:** in `src/reg_stack.h`, replace only `push` and `pop` with:
 
 ```cpp
@@ -123,12 +106,19 @@ DataT pop() {
 }
 ```
 
+Clean and rebuild with the OPT-001 command, retaining `-O2`.
+
 3. **OPT-003:** in `src/program.cpp`, add the following pragma immediately
    before `execute_kernel`'s outer `for (uint64_t pid = 0; pid < n_progs; ++pid)`
    loop. Build with `-O2 -fopenmp` and the common flags from the table.
 
 ```cpp
 #pragma omp parallel for schedule(dynamic, 1)
+```
+
+```bash
+make clean
+make -j4 CXXFLAGS='-std=c++17 -O2 -fopenmp -Wall -Wextra -I include -I.'
 ```
 
 4. **OPT-004:** in `benchmark/genetic_benchmark.cpp`, replace the original
@@ -170,8 +160,16 @@ It avoids the failed direct-object sorting attempt, whose library operations
 were incompatible with this class's explicit copy constructor. Two linear
 deep-copy passes remain.
 
+Clean and rebuild with the OPT-003 command, keeping `-O2 -fopenmp`.
+
 5. **OPT-005:** no source edit; clean rebuild the OPT-004 source with `-O3`
    instead of `-O2`, retaining `-fopenmp`.
+
+```bash
+make clean
+make -j4 CXXFLAGS='-std=c++17 -O3 -fopenmp -Wall -Wextra -I include -I.'
+```
+
 6. **OPT-006:** in `include/fitness.h`, add the following pragma immediately
    before the **first outer pid loop inside `logLoss`**, which fills `error`.
    Leave the weight sum and later averaging loop unchanged. Clean rebuild
@@ -181,11 +179,26 @@ deep-copy passes remain.
 #pragma omp parallel for schedule(static)
 ```
 
+Clean and rebuild with the OPT-005 command. Test all five tasks before applying
+the later memory fix below.
+
+### Later Memory Fix and Current Build
+
 To reproduce FIX-001 separately, add `delete[] p_out.nodes;` immediately before
 `p_out.nodes = new node[p_out.len];` **inside `hoist_mutation`** in
 `src/program.cpp`. Do not add a duplicate deletion in `crossover`. Current
 training calls use distinct input/output programs. The old output allocation
 must be released before its pointer is replaced.
+
+Build the current fixed source with:
+
+```bash
+make clean
+make -j4 CXXFLAGS='-std=c++17 -O3 -fopenmp -Wall -Wextra -I include -I.'
+```
+
+The performance table below was collected before FIX-001. No ordinary post-fix
+timing has been recorded; memory-check timings are not performance results.
 
 ### Run and Time All Five Workloads
 
