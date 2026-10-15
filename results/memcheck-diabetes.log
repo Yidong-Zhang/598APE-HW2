@@ -1,0 +1,148 @@
+==7473== Memcheck, a memory error detector
+==7473== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==7473== Using Valgrind-3.26.0 and LibVEX; rerun with -h for copyright info
+==7473== Command: ./genetic_benchmark diabetes
+==7473== Parent PID: 6790
+==7473== 
+==7473== 
+==7473== HEAP SUMMARY:
+==7473==     in use at exit: 62,392 bytes in 99 blocks
+==7473==   total heap usage: 62,399 allocs, 62,300 frees, 7,541,108,534 bytes allocated
+==7473== 
+==7473== 8 bytes in 1 blocks are still reachable in loss record 1 of 11
+==7473==    at 0x4896858: malloc (vg_replace_malloc.c:447)
+==7473==    by 0x4C8CCB4: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4CA44BE: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4C8B59B: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x40517CE: call_init.part.0 (dl-init.c:74)
+==7473==    by 0x40518E3: call_init (dl-init.c:120)
+==7473==    by 0x40518E3: _dl_init (dl-init.c:121)
+==7473==    by 0x406E39F: ??? (in /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2)
+==7473==    by 0x1: ???
+==7473==    by 0x1FFF00015E: ???
+==7473==    by 0x1FFF000172: ???
+==7473== 
+==7473== 40 bytes in 1 blocks are still reachable in loss record 2 of 11
+==7473==    at 0x489E07F: realloc (vg_replace_malloc.c:1804)
+==7473==    by 0x4C8CD24: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4CA2D70: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4C97703: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x403C5F2: execute_kernel<> (program.cpp:24)
+==7473==    by 0x403C5F2: execute (program.cpp:107)
+==7473==    by 0x403C5F2: genetic::find_batched_fitness(int, genetic::program*, float*, genetic::param const&, int, float const*, float const*, float const*) (program.cpp:129)
+==7473==    by 0x403C9D3: genetic::set_batched_fitness(int, std::vector<genetic::program, std::allocator<genetic::program> >&, genetic::param const&, int, float const*, float const*, float const*) (program.cpp:155)
+==7473==    by 0x403371D: genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int) (genetic.cpp:182)
+==7473==    by 0x40341B4: genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&) (genetic.cpp:448)
+==7473==    by 0x402ADA2: run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (genetic_benchmark.cpp:297)
+==7473==    by 0x4008285: main (genetic_benchmark.cpp:688)
+==7473== 
+==7473== 56 bytes in 1 blocks are definitely lost in loss record 3 of 11
+==7473==    at 0x48985F3: operator new[](unsigned long) (vg_replace_malloc.c:730)
+==7473==    by 0x403ADBA: genetic::build_program(genetic::program&, genetic::param const&, PhiloxEngine&) (program.cpp:339)
+==7473==    by 0x4033825: genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int) (genetic.cpp:109)
+==7473==    by 0x40341B4: genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&) (genetic.cpp:448)
+==7473==    by 0x402ADA2: run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (genetic_benchmark.cpp:297)
+==7473==    by 0x4008285: main (genetic_benchmark.cpp:688)
+==7473== 
+==7473== 96 bytes in 1 blocks are still reachable in loss record 4 of 11
+==7473==    at 0x489DE43: calloc (vg_replace_malloc.c:1678)
+==7473==    by 0x4C8CCEC: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4C8B4E3: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4C8B5B7: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x40517CE: call_init.part.0 (dl-init.c:74)
+==7473==    by 0x40518E3: call_init (dl-init.c:120)
+==7473==    by 0x40518E3: _dl_init (dl-init.c:121)
+==7473==    by 0x406E39F: ??? (in /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2)
+==7473==    by 0x1: ???
+==7473==    by 0x1FFF00015E: ???
+==7473==    by 0x1FFF000172: ???
+==7473== 
+==7473== 192 bytes in 1 blocks are still reachable in loss record 5 of 11
+==7473==    at 0x4896858: malloc (vg_replace_malloc.c:447)
+==7473==    by 0x4C8CCB4: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4CA1D41: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4C976EC: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x403C5F2: execute_kernel<> (program.cpp:24)
+==7473==    by 0x403C5F2: execute (program.cpp:107)
+==7473==    by 0x403C5F2: genetic::find_batched_fitness(int, genetic::program*, float*, genetic::param const&, int, float const*, float const*, float const*) (program.cpp:129)
+==7473==    by 0x403C9D3: genetic::set_batched_fitness(int, std::vector<genetic::program, std::allocator<genetic::program> >&, genetic::param const&, int, float const*, float const*, float const*) (program.cpp:155)
+==7473==    by 0x403371D: genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int) (genetic.cpp:182)
+==7473==    by 0x40341B4: genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&) (genetic.cpp:448)
+==7473==    by 0x402ADA2: run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (genetic_benchmark.cpp:297)
+==7473==    by 0x4008285: main (genetic_benchmark.cpp:688)
+==7473== 
+==7473== 744 bytes in 2 blocks are definitely lost in loss record 6 of 11
+==7473==    at 0x48985F3: operator new[](unsigned long) (vg_replace_malloc.c:730)
+==7473==    by 0x403938A: genetic::program::operator=(genetic::program const&) (program.cpp:78)
+==7473==    by 0x40398DA: genetic::point_mutation(genetic::program const&, genetic::program&, genetic::param const&, PhiloxEngine&) (program.cpp:350)
+==7473==    by 0x4033761: genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int) (genetic.cpp:171)
+==7473==    by 0x40341B4: genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&) (genetic.cpp:448)
+==7473==    by 0x402ADA2: run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (genetic_benchmark.cpp:297)
+==7473==    by 0x4008285: main (genetic_benchmark.cpp:688)
+==7473== 
+==7473== 1,008 bytes in 3 blocks are possibly lost in loss record 7 of 11
+==7473==    at 0x489DE43: calloc (vg_replace_malloc.c:1678)
+==7473==    by 0x4061506: calloc (rtld-malloc.h:44)
+==7473==    by 0x4061506: allocate_dtv (dl-tls.c:470)
+==7473==    by 0x4061506: _dl_allocate_tls (dl-tls.c:722)
+==7473==    by 0x4DB1C81: allocate_stack (allocatestack.c:568)
+==7473==    by 0x4DB1C81: pthread_create@@GLIBC_2.34 (pthread_create.c:680)
+==7473==    by 0x4CA21BA: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4C97703: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x403C5F2: execute_kernel<> (program.cpp:24)
+==7473==    by 0x403C5F2: execute (program.cpp:107)
+==7473==    by 0x403C5F2: genetic::find_batched_fitness(int, genetic::program*, float*, genetic::param const&, int, float const*, float const*, float const*) (program.cpp:129)
+==7473==    by 0x403C9D3: genetic::set_batched_fitness(int, std::vector<genetic::program, std::allocator<genetic::program> >&, genetic::param const&, int, float const*, float const*, float const*) (program.cpp:155)
+==7473==    by 0x403371D: genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int) (genetic.cpp:182)
+==7473==    by 0x40341B4: genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&) (genetic.cpp:448)
+==7473==    by 0x402ADA2: run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (genetic_benchmark.cpp:297)
+==7473==    by 0x4008285: main (genetic_benchmark.cpp:688)
+==7473== 
+==7473== 2,272 bytes in 1 blocks are still reachable in loss record 8 of 11
+==7473==    at 0x489E7BC: memalign (vg_replace_malloc.c:2026)
+==7473==    by 0x4C8CD60: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4CA1BD2: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x4C976EC: GOMP_parallel (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==7473==    by 0x403C5F2: execute_kernel<> (program.cpp:24)
+==7473==    by 0x403C5F2: execute (program.cpp:107)
+==7473==    by 0x403C5F2: genetic::find_batched_fitness(int, genetic::program*, float*, genetic::param const&, int, float const*, float const*, float const*) (program.cpp:129)
+==7473==    by 0x403C9D3: genetic::set_batched_fitness(int, std::vector<genetic::program, std::allocator<genetic::program> >&, genetic::param const&, int, float const*, float const*, float const*) (program.cpp:155)
+==7473==    by 0x403371D: genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int) (genetic.cpp:182)
+==7473==    by 0x40341B4: genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&) (genetic.cpp:448)
+==7473==    by 0x402ADA2: run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (genetic_benchmark.cpp:297)
+==7473==    by 0x4008285: main (genetic_benchmark.cpp:688)
+==7473== 
+==7473== 2,472 bytes in 6 blocks are definitely lost in loss record 9 of 11
+==7473==    at 0x48985F3: operator new[](unsigned long) (vg_replace_malloc.c:730)
+==7473==    by 0x403A506: genetic::crossover(genetic::program const&, genetic::program const&, genetic::program&, genetic::param const&, PhiloxEngine&) (program.cpp:436)
+==7473==    by 0x403B479: genetic::subtree_mutation(genetic::program const&, genetic::program&, genetic::param const&, PhiloxEngine&) (program.cpp:457)
+==7473==    by 0x40337A9: genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int) (genetic.cpp:165)
+==7473==    by 0x40341B4: genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&) (genetic.cpp:448)
+==7473==    by 0x402ADA2: run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (genetic_benchmark.cpp:297)
+==7473==    by 0x4008285: main (genetic_benchmark.cpp:688)
+==7473== 
+==7473== 6,584 bytes in 10 blocks are definitely lost in loss record 10 of 11
+==7473==    at 0x48985F3: operator new[](unsigned long) (vg_replace_malloc.c:730)
+==7473==    by 0x403938A: genetic::program::operator=(genetic::program const&) (program.cpp:78)
+==7473==    by 0x40336E6: genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int) (genetic.cpp:174)
+==7473==    by 0x40341B4: genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&) (genetic.cpp:448)
+==7473==    by 0x402ADA2: run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (genetic_benchmark.cpp:297)
+==7473==    by 0x4008285: main (genetic_benchmark.cpp:688)
+==7473== 
+==7473== 48,920 bytes in 72 blocks are definitely lost in loss record 11 of 11
+==7473==    at 0x48985F3: operator new[](unsigned long) (vg_replace_malloc.c:730)
+==7473==    by 0x403A506: genetic::crossover(genetic::program const&, genetic::program const&, genetic::program&, genetic::param const&, PhiloxEngine&) (program.cpp:436)
+==7473==    by 0x40337E4: genetic::cpp_evolve(std::vector<genetic::program, std::allocator<genetic::program> > const&, std::vector<genetic::program, std::allocator<genetic::program> >&, int, float const*, float const*, float const*, genetic::param const&, int, int) (genetic.cpp:162)
+==7473==    by 0x40341B4: genetic::symFit(float const*, float const*, float const*, int, int, genetic::param&, genetic::program*&, std::vector<std::vector<genetic::program, std::allocator<genetic::program> >, std::allocator<std::vector<genetic::program, std::allocator<genetic::program> > > >&) (genetic.cpp:448)
+==7473==    by 0x402ADA2: run_symbolic_regression(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (genetic_benchmark.cpp:297)
+==7473==    by 0x4008285: main (genetic_benchmark.cpp:688)
+==7473== 
+==7473== LEAK SUMMARY:
+==7473==    definitely lost: 58,776 bytes in 91 blocks
+==7473==    indirectly lost: 0 bytes in 0 blocks
+==7473==      possibly lost: 1,008 bytes in 3 blocks
+==7473==    still reachable: 2,608 bytes in 5 blocks
+==7473==         suppressed: 0 bytes in 0 blocks
+==7473== 
+==7473== For lists of detected and suppressed errors, rerun with: -s
+==7473== ERROR SUMMARY: 6 errors from 6 contexts (suppressed: 0 from 0)

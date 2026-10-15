@@ -1,5 +1,359 @@
 # 598APE-HW2
 
+## Optimized Artifact Guide
+
+This guide documents our six cumulative performance experiments and a later
+memory-leak fix. The detailed commands, original results, profiling evidence,
+failed attempts, and limitations are recorded in [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md).
+The inherited project description and examples follow this guide.
+
+Repository: https://github.com/Yidong-Zhang/598APE-HW2 (private; reviewers need access).
+Run commands from the repository root in Bash. Keep this repository private.
+
+### Dependencies and Tested Environment
+
+Required for building/running: GNU make, a C++17 compiler, and OpenMP support
+for optimized parallel builds. GNU `time` provides external process statistics.
+Racket with `racket/draw` renders the generated image programs. `perf` and
+Valgrind are diagnostic tools, not required for an ordinary benchmark run.
+
+Tested VM: Linux x86-64, kernel 7.0.0-31-generic, four VMware vCPUs reporting
+Intel Xeon Silver 4216 @ 2.10 GHz, about 15 GiB RAM; GCC 15.2.0,
+perf 7.0.14, Racket 8.18 [cs], Valgrind 3.26.0. Physical CPU resources are not
+necessarily exclusive. Other machines need not reproduce identical timings.
+
+On an Ubuntu VM with sudo access, basic dependencies can be installed with:
+
+```bash
+sudo apt update
+sudo apt install build-essential time racket valgrind
+```
+
+The course VM already supplied perf. For profiling elsewhere, install a perf
+package compatible with that machine's kernel; first check `perf --version`.
+The supplied Docker scripts are an alternative setup, but these measurements
+were made directly on the VM, not inside Docker.
+
+### Versions and Compiler Flags
+
+Original source revision: `f19cc633664c9a333b208049770424d58d14909e`.
+Each optimization stage includes all preceding stages. FIX-001 is a separate
+correctness fix added after the performance measurements.
+
+| Version | Additional change | Build flags | Runtime threads |
+| --- | --- | --- | --- |
+| Baseline | Original source | `-std=c++17 -Wall -Wextra -I include -I.` | Serial |
+| OPT-001 | Compiler optimization | Above plus `-O2` | Serial |
+| OPT-002 | Direct-index stack push/pop | Same as OPT-001 | Serial |
+| OPT-003 | Parallel candidate evaluation, dynamic scheduling | Same as OPT-002 plus `-fopenmp` | 4 |
+| OPT-004 | Stable pointer sorting of final candidates | Same as OPT-003 | 4 |
+| OPT-005 | Replace `-O2` with `-O3` | `-std=c++17 -O3 -fopenmp -Wall -Wextra -I include -I.` | 4 |
+| OPT-006 | Parallel log-loss error generation, static scheduling | Same as OPT-005 | 4 |
+| FIX-001 | Release previous hoist-mutation output array | Same as OPT-006; add `-g` for diagnostics | 4; 1 for diagnostic control |
+
+OPT-006 directly affects cancer, the only provided workload using log loss.
+The other four use MSE and are controls for this change. No `-ffast-math` or
+processor-specific instruction flags were used. Setting `OMP_NUM_THREADS=4`
+does not make the serial source stages parallel.
+
+The Makefile defaults do **not** enable `-O3` or OpenMP. Pass the documented
+flags explicitly. Always run `make clean` when changing flags or headers:
+the current Makefile does not track those dependencies. `make -j4` controls
+compiler jobs, not the benchmark's runtime thread count.
+
+### Build the Original Baseline
+
+Extract the original tracked source into a separate directory, leaving current
+source and uncommitted work untouched. Use a new directory for each extraction:
+
+```bash
+mkdir ../hw2-baseline
+git archive f19cc633664c9a333b208049770424d58d14909e | tar -x -C ../hw2-baseline
+cd ../hw2-baseline
+make clean
+make -j4 CXXFLAGS='-std=c++17 -Wall -Wextra -I include -I.'
+```
+
+To obtain the compiler-only OPT-001 control in that baseline directory:
+
+```bash
+make clean
+make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.'
+```
+
+Measure each build before replacing it, and use separate result directories.
+The five-task commands below work in either checkout.
+
+### Build the Current Optimized Source
+
+Return to the optimized repository directory before building. These flags
+require the source changes listed above; compiler flags alone do not recreate
+OPT-002 through OPT-006.
+
+```bash
+make clean
+make -j4 CXXFLAGS='-std=c++17 -O3 -fopenmp -Wall -Wextra -I include -I.'
+```
+
+Current source should include FIX-001 when reproducing memory checks. The
+performance table below was collected **before FIX-001**. No normal post-fix
+performance measurements are claimed. Do not identify a newly measured fixed
+build as a reproduction of the exact historical OPT-006 source configuration.
+
+### Reconstruct Intermediate Source Stages
+
+The experimental stages were not recorded as six independently confirmed Git
+commits. To evaluate each change, extract another copy of the original revision
+as above and apply the following edits in order, measuring after each stage.
+Do not reset or overwrite your working optimized checkout.
+
+1. **OPT-001:** source unchanged; build with `-O2`.
+2. **OPT-002:** in `src/reg_stack.h`, replace only `push` and `pop` with:
+
+```cpp
+void push(DataT val) {
+  if (elements_ < MaxSize) {
+    regs_[elements_] = val;
+    ++elements_;
+  }
+}
+
+DataT pop() {
+  if (elements_ > 0) {
+    --elements_;
+    return regs_[elements_];
+  }
+  return DataT(0);
+}
+```
+
+3. **OPT-003:** in `src/program.cpp`, add the following pragma immediately
+   before `execute_kernel`'s outer `for (uint64_t pid = 0; pid < n_progs; ++pid)`
+   loop. Build with `-O2 -fopenmp` and the common flags from the table.
+
+```cpp
+#pragma omp parallel for schedule(dynamic, 1)
+```
+
+4. **OPT-004:** in `benchmark/genetic_benchmark.cpp`, replace the original
+   `insertionSortPrograms` definition with these two functions. The existing
+   includes already provide the required library facilities. Retain the
+   function name and call sites.
+
+```cpp
+bool compareFitness(const genetic::program *a,
+                    const genetic::program *b) {
+  if (a->raw_fitness_ < b->raw_fitness_) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+void insertionSortPrograms(genetic::program *programs, int size) {
+  std::vector<genetic::program *> order(size);
+  for (int i = 0; i < size; i++) {
+    if (std::isnan(programs[i].raw_fitness_)) {
+      programs[i].raw_fitness_ = std::numeric_limits<float>::max();
+    }
+    order[i] = &programs[i];
+  }
+  std::stable_sort(order.begin(), order.end(), compareFitness);
+  std::vector<genetic::program> sorted(size);
+  for (int i = 0; i < size; i++) {
+    sorted[i] = *order[i];
+  }
+  for (int i = 0; i < size; i++) {
+    programs[i] = sorted[i];
+  }
+}
+```
+
+Pointer sorting preserves the original handling of NaNs and stable ties.
+It avoids the failed direct-object sorting attempt, whose library operations
+were incompatible with this class's explicit copy constructor. Two linear
+deep-copy passes remain.
+
+5. **OPT-005:** no source edit; clean rebuild the OPT-004 source with `-O3`
+   instead of `-O2`, retaining `-fopenmp`.
+6. **OPT-006:** in `include/fitness.h`, add the following pragma immediately
+   before the **first outer pid loop inside `logLoss`**, which fills `error`.
+   Leave the weight sum and later averaging loop unchanged. Clean rebuild
+   with `-O3 -fopenmp` and the common flags.
+
+```cpp
+#pragma omp parallel for schedule(static)
+```
+
+To reproduce FIX-001 separately, add `delete[] p_out.nodes;` immediately before
+`p_out.nodes = new node[p_out.len];` **inside `hoist_mutation`** in
+`src/program.cpp`. Do not add a duplicate deletion in `crossover`. Current
+training calls use distinct input/output programs. The old output allocation
+must be released before its pointer is replaced.
+
+### Run and Time All Five Workloads
+
+Use a new directory name for each configuration/run to avoid overwriting saved
+evidence. This example measures the fixed current build; change the directory
+label when measuring a reconstructed historical stage. No dataset download is
+needed; inputs are in `benchmark/`.
+
+```bash
+RESULT_DIR=results/reproduction-fixed-final-run1
+mkdir -p "$RESULT_DIR"
+for task in diabetes cancer housing silk-wave square-wave; do
+  OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+    -o "$RESULT_DIR/$task.time.log" \
+    ./genetic_benchmark "$task" \
+    > "$RESULT_DIR/$task.rkt" \
+    2> "$RESULT_DIR/$task.stderr.log"
+done
+```
+
+Each invocation performs a complete task. Tabular tasks print the two selected
+formulas and quality metrics; image tasks print a runnable reconstruction
+program. Time statistics and stderr are separate to keep Racket source valid.
+Inspect each `.time.log` (including exit status), `.stderr.log`, and the final
+`;;Time(...)` line in `.rkt`. Run benchmarks sequentially, without perf or
+Valgrind. Repeat into distinct run directories when estimating variability.
+
+Render images afterward; rendering is not part of the measured C++ interval:
+
+```bash
+racket "$RESULT_DIR/silk-wave.rkt" "$RESULT_DIR/silk-wave.png"
+racket "$RESULT_DIR/square-wave.rkt" "$RESULT_DIR/square-wave.png"
+```
+
+Workload settings are unchanged across stages: diabetes 442 samples/10 features,
+cancer 569/30, housing 20640/8; images are 256x256 pixels with two coordinate
+features. Population sizes are respectively 512, 16384, 512, 128, 128;
+all configure 16 generations. Silk-wave trains nine RGB models, square-wave 24.
+The deterministic split uses approximately 80% training and 20% testing.
+Seeds remain as in the original source; no reduced training budget is used.
+
+### Recorded Performance and Output Checks
+
+The following are internal elapsed seconds from **one run per task/version**,
+not averages. Baseline is the original build without an optimization flag.
+Final measured version is OPT-006 **before the leak fix**. Complete intermediate
+results are in the experiment log and `results/opt*-run1*` files.
+
+| Workload | Original baseline | OPT-001 (-O2 only) | OPT-006 (pre-fix) |
+| --- | --- | --- | --- |
+| diabetes | 21.419001955 | 10.154784505 | 0.398813292 |
+| cancer | 134.527396735 | 60.837659981 | 3.778010087 |
+| housing | 251.455379922 | 118.189752884 | 5.851969198 |
+| silk-wave | 422.754671735 | 172.247363277 | 12.842426638 |
+| square-wave | 1312.860383860 | 547.494688596 | 37.867636479 |
+
+Internal timing covers the benchmark-defined interval including loading,
+preparation, training, selection and test/formula output. It excludes compilation,
+Racket rendering and, for tabular tasks, final array cleanup after the timer.
+External process wall times are retained separately and are not mixed into
+reported internal-timer speedup ratios. VM contention and scheduling can affect
+results; small single-run differences are not established benefits/regressions.
+
+All six optimization stages retained the full printed output before timing,
+including formulas, model sizes and quality metrics. Reference test MSE values:
+diabetes 7468.95/7217.17, housing 0.64586/0.728984; cancer accuracy is 0.946903
+for both models. Image RGB test MSE before display clamping is 0.0277195631
+(silk-wave) and 0.0175210362 (square-wave). All stage PNGs were byte-identical
+to baseline. These checks do not prove bitwise equality of internal predictions.
+
+To compare a new diabetes output with its recorded reference, ignoring timing:
+
+```bash
+diff -u \
+  <(sed '/^;;Time(/,$d' results/opt06-logloss4-diabetes-run1.log) \
+  <(sed '/^;;Time(/,$d' "$RESULT_DIR/diabetes.rkt")
+cmp results/baseline-silk-wave-run1.png "$RESULT_DIR/silk-wave.png"
+cmp results/baseline-square-wave-run1.png "$RESULT_DIR/square-wave.png"
+```
+
+No output with exit status 0 means equality. A difference requires investigation;
+cross-platform floating-point behavior or PNG encodings may differ. Repeat the
+text comparison for other tasks, using their corresponding saved source/log.
+
+### Profiling
+
+Profiles are separate diagnostic runs. For example, sample the fixed current
+housing workload on a VM where sudo permits perf:
+
+```bash
+sudo env OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE perf record \
+  -e cpu-clock:u -F 99 -g --call-graph dwarf \
+  -o results/perf-fixed-housing.data \
+  -- ./genetic_benchmark housing > results/perf-fixed-housing.rkt
+sudo perf report --stdio --no-children --sort symbol --percent-limit 1 \
+  -i results/perf-fixed-housing.data > results/perf-fixed-housing.report.txt
+```
+
+Our VM reported `perf_event_paranoid=4`; sudo was used without changing that
+setting. The software event avoids depending on virtualized hardware counters.
+Self shares describe aggregate user-space CPU samples across threads, not exact
+wall-time fractions. Inlining changes symbol attribution; do not double-count
+caller-tree shares. Historical reports and the reasons for changing profiled
+workloads are listed under PROF-001 through PROF-006 in the experiment log.
+PROF-007 was proposed but not executed. Do not treat proposed commands as results.
+
+### Memory Validation and FIX-001
+
+FIX-001 releases the previous node array in `hoist_mutation`. A diagnostic
+build retains `-O3`/OpenMP and adds `-g` for source locations:
+
+```bash
+make clean
+make -j4 CXXFLAGS='-std=c++17 -O3 -g -fopenmp -Wall -Wextra -I include -I.'
+mkdir -p results/memcheck-reproduction
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE valgrind \
+  --tool=memcheck --leak-check=full --show-leak-kinds=all \
+  --track-origins=yes --error-exitcode=99 \
+  --log-file=results/memcheck-reproduction/diabetes.log \
+  ./genetic_benchmark diabetes \
+  > results/memcheck-reproduction/diabetes.rkt \
+  2> results/memcheck-reproduction/diabetes.stderr.log
+echo "Memcheck exit status: $?"
+```
+
+Use corresponding `cancer` names and argument for classification coverage.
+An `OMP_NUM_THREADS=1` run with distinct output names provides a diagnostic
+control. Valgrind runs are much slower and their internal timings must not be
+used in performance comparisons. Memcheck does not check data races.
+
+| Observed check | Definitely lost | Possibly lost | Still reachable | Error contexts |
+| --- | --- | --- | --- | --- |
+| Diabetes pre-fix, 4 threads | 58776 bytes | 1008 bytes | 2608 bytes | 6 |
+| Diabetes FIX-001, 4 threads | 0 | 1008 bytes | 2608 bytes | 1 |
+| Diabetes FIX-001, 1 thread | 0 | 0 | 296 bytes | 0 |
+| Cancer FIX-001, 4 threads | 0 | 1008 bytes | 2608 bytes | 1 |
+
+Indirect loss was zero in all four reports. Four-thread residual possible-loss
+stacks enter thread TLS allocation (`allocate_dtv`, `_dl_allocate_tls`,
+`pthread_create`, libgomp). The diabetes one-thread control removes this context,
+supporting association with worker TLS, not proving a benign false positive.
+Reachable records originate in libgomp. No suppressions were applied. The
+four-thread reports are **not zero-error reports**; `--error-exitcode=99` can
+produce a nonzero command marker even without a program crash.
+
+Evidence: `results/memcheck-diabetes.log`,
+`results/memcheck-fix01-diabetes.log`,
+`results/memcheck-fix01-diabetes-1thread.log`, and
+`results/memcheck-fix01-cancer.log`. VM diff comparisons confirmed post-fix
+diabetes/cancer printed formulas and metrics match OPT-006 before timing.
+Image-path Memcheck, race checks, and ordinary post-fix timings were not run.
+The compiler's Pearson `y_mu` warning also remains unresolved; these five
+benchmarks use MSE/log loss and do not validate Pearson behavior.
+
+Commit source, documentation and diagnostic text outputs together. Keep
+executable backups, object files and binary perf `.data` captures out of source
+commits; textual perf reports suffice for inspecting the recorded findings.
+
+## Original Project Guide
+
+The following is the supplied project guide. Its plain `make -j` command uses
+the Makefile defaults; use the explicit optimized flags above for our artifact.
+Its example timing is illustrative, not a measurement from our VM.
+
 This repository contains code for homework 2 of 598APE.
 
 In particular, this repository is an implementation of Symbolic Regression and the various contexts it can be used in.

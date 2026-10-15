@@ -2132,8 +2132,269 @@ sudo perf report --stdio --no-children --sort symbol --percent-limit 1 -i result
   Dataset differs from previous cancer profiles; no direct percentage-based
   before/after comparison between them. Repeated timing remains deferred.
 
+### MEM-001: Current Optimized Diabetes Memory Check
+
+- Status: preflight completed; user supplied `valgrind-3.26.0` from VM.
+  Diagnostic build output received: all four sources compiled, benchmark link
+  step reached, returned to prompt with no errors shown; build exit status not
+  supplied. Memcheck report received (PID 7473): definite leaks detected;
+  check is not clean. Runtime exit status not supplied.
+- Intended code: current optimized VM version; confirm subsequent source
+  changes/revision before treating it as identical to OPT-006.
+- Diagnostic build adds -g to -O3 -fopenmp, retaining source behavior and four
+  requested OpenMP threads. Diagnostic runs are not performance measurements.
+- Requested build on VM:
+
+```bash
+make clean
+set -o pipefail
+make -j4 CXXFLAGS='-std=c++17 -O3 -g -fopenmp -Wall -Wextra -I include -I.' 2>&1 | tee results/memcheck-build.log
+```
+
+- Next step: review build output, then run Memcheck on diabetes and retain
+  diagnostics separately from generated program output. This checks only the
+  executed path; cancer/log-loss and race checking are not covered by diabetes
+  Memcheck alone. Runtime-library reachable allocations require interpretation.
+- Build warnings match previous builds: constructor order, unused parameters,
+  Pearson y_mu possibly uninitialized, timespec initializer. No new diagnostics.
+  Exact submitted flags: -std=c++17 -O3 -g -fopenmp -Wall -Wextra -I include -I.
+- Requested Memcheck command on VM:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE valgrind \
+  --tool=memcheck \
+  --leak-check=full \
+  --show-leak-kinds=all \
+  --track-origins=yes \
+  --error-exitcode=99 \
+  --log-file=results/memcheck-diabetes.log \
+  ./genetic_benchmark diabetes \
+  > results/memcheck-diabetes-output.rkt \
+  2> results/memcheck-diabetes.stderr.log
+```
+
+- Capture exit status immediately after completion. Error-exitcode 99 marks
+  errors counted under Memcheck's configured/default error policy; interpret
+  the full leak/error report, not just process status or reachable memory.
+- Raw report: [results/memcheck-diabetes.log](results/memcheck-diabetes.log),
+  copied from complete user-supplied attachment.
+- Tool: Valgrind 3.26.0; command confirmed in report: genetic_benchmark diabetes.
+- Heap usage: 62399 allocations, 62300 frees, 7541108534 cumulative allocated
+  bytes; exit heap 62392 bytes in 99 blocks. Cumulative allocations are not peak
+  memory or live memory.
+
+| Category | Bytes | Blocks |
+| --- | --- | --- |
+| Definitely lost | 58776 | 91 |
+| Indirectly lost | 0 | 0 |
+| Possibly lost | 1008 | 3 |
+| Still reachable | 2608 | 5 |
+| Suppressed | 0 | 0 |
+
+- ERROR SUMMARY: 6 errors from 6 contexts (0 suppressed). Report shows no
+  invalid reads/writes or uninitialized-value errors, but does show leaks;
+  do not report this run as memory-error-free.
+- Definite-loss allocation contexts: build_program (56 bytes/1 block), program
+  assignment via point mutation (744/2), crossover via subtree mutation
+  (2472/6), assignment via reproduction (6584/10), crossover (48920/72).
+  Allocation stack identifies where memory originated, not necessarily where
+  ownership was lost.
+- Possibly lost stacks enter allocate_dtv/_dl_allocate_tls/pthread_create/libgomp;
+  reachable blocks originate in libgomp. These are runtime-associated records,
+  distinct from definite application leaks; do not suppress or dismiss without
+  further investigation.
+- Local source inspection: hoist_mutation overwrites p_out.nodes with a new
+  allocation without deleting its previous owned array. Reused generation
+  slots can therefore lose arrays allocated by any preceding mutation method,
+  consistent with the diverse reported allocation contexts. Hypothesis needs
+  VM source confirmation and a post-fix Memcheck run, not just source review.
+- Next action: inspect VM hoist_mutation, fix lost ownership if confirmed,
+  rebuild diagnostic binary, repeat Memcheck and compare output. Track fix
+  separately from previously measured optimization stages.
+
+### FIX-001: Release Previous Hoist-Mutation Output
+
+- Status: user supplied VM hoist_mutation source; missing deletion before
+  overwriting p_out.nodes confirmed. Subsequent VM diff reviewed: exactly
+  `delete[] p_out.nodes;` added immediately before new allocation. Fix applied
+  on VM; build and runtime validation pending. Local source unchanged.
+- Context: cpp_evolve passes input programs from h_oldprogs and output slots
+  from a separate h_nextprogs vector. The proposed deletion assumes these
+  objects/node arrays do not alias, as in current benchmark calls.
+- Minimal change: add `delete[] p_out.nodes;` immediately before
+  `p_out.nodes = new node[p_out.len];` in hoist_mutation only.
+- Rationale: output slots already own arrays from earlier generations;
+  replacing the pointer without releasing them leaks prior allocations.
+  This also explains why leak allocation stacks name several mutation methods.
+- Existing node selection, random-number usage, copy order and fitness
+  computations stay unchanged. Do not label this a measured speed optimization.
+- Validation pending: VM diff, clean -O3 -g -fopenmp rebuild, new diabetes
+  Memcheck log with a distinct post-fix name, output comparison, then cancer
+  coverage. No claim yet that all definite leaks are eliminated.
+- Reviewed diff against VM's current tracked source is one added line in
+  hoist_mutation; no numeric/random-number or other source edits shown.
+- Requested post-fix diagnostic build:
+
+```bash
+make clean
+set -o pipefail
+make -j4 CXXFLAGS='-std=c++17 -O3 -g -fopenmp -Wall -Wextra -I include -I.' 2>&1 | tee results/memcheck-fix01-build.log
+```
+
+- Preserve results/memcheck-diabetes.log as pre-fix evidence; subsequent
+  diagnostics/output will use memcheck-fix01-diabetes names.
+- Post-fix build output received: all four source files compiled; reached
+  benchmark linking with no errors shown. Warnings unchanged (member order,
+  unused parameters, Pearson y_mu, timespec initializer). Exit status not
+  supplied. Post-fix Memcheck results still pending.
+- Requested post-fix run, same four-thread configuration as MEM-001:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=99 --log-file=results/memcheck-fix01-diabetes.log ./genetic_benchmark diabetes > results/memcheck-fix01-diabetes-output.rkt 2> results/memcheck-fix01-diabetes.stderr.log
+```
+
+- Next step: inspect full new report and compare definite-loss total to
+  pre-fix 58776 bytes/91 blocks; interpret TLS/runtime records separately.
+
+#### FIX-001 Post-Fix Diabetes Memcheck Result
+
+- Full report: [results/memcheck-fix01-diabetes.log](results/memcheck-fix01-diabetes.log),
+  copied from user attachment (PID 9177). User confirmed empty stderr;
+  process exit status not supplied.
+- Same diagnostic flags and requested four-thread setup as pre-fix check.
+- Heap allocations: 62399 allocs, 62391 frees, 7541108534 cumulative bytes;
+  exit heap 3616 bytes in 8 blocks. Compared with pre-fix 62300 frees, the
+  additional 91 frees match the 91 formerly definitely-lost blocks.
+
+| Category | Pre-fix bytes/blocks | Post-fix bytes/blocks |
+| --- | --- | --- |
+| Definitely lost | 58776 / 91 | 0 / 0 |
+| Indirectly lost | 0 / 0 | 0 / 0 |
+| Possibly lost | 1008 / 3 | 1008 / 3 |
+| Still reachable | 2608 / 5 | 2608 / 5 |
+| Error summary | 6 contexts | 1 context |
+
+- Conclusion: observed definite application leaks eliminated in this executed
+  diabetes path. No invalid-access or uninitialized-use errors listed. Do not
+  state zero Memcheck errors: report still counts the possible-loss context.
+- Remaining possible-loss stack: allocate_dtv -> _dl_allocate_tls ->
+  pthread_create -> libgomp -> GOMP_parallel. Reachable blocks also originate
+  in libgomp. Stack identifies runtime TLS allocation, but no suppression or
+  independent proof of a benign false positive has been established.
+- Next diagnostic: same fixed binary, OMP_NUM_THREADS=1, compare runtime/TLS
+  records. This is a diagnostic control, not performance measurement or full
+  multithreaded validation. Cancer coverage and output comparisons still pending.
+
+```bash
+OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=99 --log-file=results/memcheck-fix01-diabetes-1thread.log ./genetic_benchmark diabetes > results/memcheck-fix01-diabetes-1thread-output.rkt 2> results/memcheck-fix01-diabetes-1thread.stderr.log
+```
+
+#### FIX-001 One-Thread Diabetes Diagnostic Control
+
+- User supplied complete report, PID 9898, Valgrind 3.26.0, command
+  ./genetic_benchmark diabetes; confirmed empty stderr. Process exit status
+  not separately supplied. Uses requested OMP_NUM_THREADS=1, OMP_DYNAMIC=FALSE
+  and same fixed diagnostic binary.
+- ERROR SUMMARY: 0 errors from 0 contexts, no suppressions.
+- Definitely/indirectly/possibly lost: all 0 bytes in 0 blocks.
+- Still reachable: 296 bytes in 3 blocks (8 + 96 + 192 bytes), all allocation
+  stacks originate in libgomp. These are reachable allocations, not detected
+  definite leaks.
+- Heap: 62412 allocs, 62409 frees, 7541133582 cumulative allocated bytes;
+  exit heap 296 bytes/3 blocks. Original full report remains on VM at
+  results/memcheck-fix01-diabetes-1thread.log; summary recorded here.
+- Interpretation: four-thread possible loss (1008 bytes/3 TLS blocks) disappears
+  in one-thread control, supporting association with OpenMP worker TLS.
+  This alone does not prove a benign false positive; retain four-thread
+  residual context in report and do not claim all configurations have zero
+  Memcheck errors. No suppressions introduced.
+- Confirmed application definite loss is zero in both post-fix runs; one-thread
+  check is not race detection or complete multithreaded memory validation.
+- Diabetes printed-output comparison after FIX-001 still pending.
+
+### MEM-002: Fixed Cancer Memory Check
+
+- Status: complete user report received (PID 10450), same requested FIX-001
+  diagnostic binary/four-thread settings; user confirmed empty stderr.
+- Purpose: cover classification/log-loss path absent from diabetes, including
+  four-thread parallel error computation. Diagnostic timing not performance data.
+- Command on VM:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=99 --log-file=results/memcheck-fix01-cancer.log ./genetic_benchmark cancer > results/memcheck-fix01-cancer-output.rkt 2> results/memcheck-fix01-cancer.stderr.log
+```
+
+- Inspect full report before conclusions, interpret runtime TLS separately,
+  and compare printed output against pre-fix cancer reference afterward.
+- Raw report: [results/memcheck-fix01-cancer.log](results/memcheck-fix01-cancer.log),
+  copied from user-supplied attachment. Valgrind 3.26.0 confirms command
+  ./genetic_benchmark cancer.
+- Definitely lost: 0 bytes/0 blocks; indirectly lost: 0/0; possibly lost:
+  1008 bytes/3 blocks; still reachable: 2608 bytes/5 blocks; suppressed: 0.
+- ERROR SUMMARY: 1 errors from 1 contexts, none suppressed. Remaining
+  possible-loss stack enters allocate_dtv/_dl_allocate_tls/pthread_create/libgomp;
+  reachable stacks also originate in libgomp. Same counts and runtime allocation
+  path as fixed four-thread diabetes. No invalid-access, uninitialized-value,
+  or fatal-signal messages listed in supplied report.
+- Heap: 1789877 allocs, 1789869 frees, 240952124075 cumulative allocated bytes;
+  3616 bytes/8 blocks live at exit. Cumulative allocation volume is not peak RAM.
+- User observed red VS Code command marker, meaning nonzero shell status;
+  exact exit code not supplied. --error-exitcode=99 is consistent with the
+  remaining counted Memcheck context; do not describe it as a verified crash
+  or claim exit status 99 was observed.
+- Conclusion: no definite/indirect leaks reported in executed fixed cancer
+  path, but not zero Memcheck errors. Diabetes one-thread control supports
+  worker TLS association, not proof this cancer report is a false positive.
+- Printed formula/metric output comparisons after FIX-001 remain pending;
+  no race test or image-path Memcheck result received. Diagnostics do not
+  replace ordinary post-fix correctness validation or timing.
+
+### FIX-001 Post-Fix Output Comparison
+
+- User executed both VM diff commands below and supplied output showing
+  no differences and no command errors:
+
+```bash
+diff -u \
+  <(sed '/^;;Time(/,$d' results/opt06-logloss4-diabetes-run1.log) \
+  <(sed '/^;;Time(/,$d' results/memcheck-fix01-diabetes-output.rkt)
+diff -u \
+  <(sed '/^;;Time(/,$d' results/opt06-logloss4-cancer-run1.log) \
+  <(sed '/^;;Time(/,$d' results/memcheck-fix01-cancer-output.rkt)
+```
+
+- Conclusion: complete printed output before internal timing, including
+  formulas, model sizes and quality metrics, matches pre-fix OPT-006 for
+  diabetes and cancer. Internal prediction arrays were not compared bitwise.
+- FIX-001 validation now includes post-fix diabetes/cancer four-thread
+  Memcheck reports, one-thread diabetes diagnostic control, and these two
+  output comparisons. Image-path Memcheck, race checks and normal post-fix
+  timings remain unperformed. Prior performance tables describe pre-fix code.
+- Next step: commit the VM source fix and diagnostic logs as a separate
+  correctness change; transfer the updated local journal before staging it.
+  Update artifact/essay with exact scope, including residual TLS context.
+
 ### Repository Upload Preparation
 
+- Documentation preparation (2026-10-14): local README.md now includes an
+  optimized artifact guide: dependencies/test environment, original baseline
+  extraction, cumulative stage reconstruction edits/flags, current build,
+  five-task timing/output commands, rendering, profiling, original one-run
+  performance results, and scoped pre/post-fix memory findings. Original project
+  guide retained below it. No claims of repeated timing or post-fix performance.
+- README shell snippets in the new guide passed local Bash syntax checking;
+  git diff --check passed. Recipes have not been executed end-to-end on VM by
+  this assistant. Intermediate reconstruction is documented, not independently
+  rebenchmarked. VM must retain its actual source edits and supply raw logs.
+- Next transfer from Mac local terminal (not yet executed):
+
+```bash
+scp /Users/zhangyidong/Desktop/CS598_APE/598APE-HW2/README.md /Users/zhangyidong/Desktop/CS598_APE/598APE-HW2/EXPERIMENT_LOG.md yidongz3@fa26-cs598a-042.cs.illinois.edu:~/598APE-HW2/
+```
+
+- This replaces VM README/journal with locally prepared documents, not source
+  files. Review any newer VM README edits before replacement. After transfer,
+  review git diff and commit these docs alongside FIX-001 and diagnostic logs.
 - User requested uploading existing work before further profiling.
 - Actual source changes/builds reside in the VM checkout. This local checkout
   contains the experiment journal and copies of user-supplied results; it does
