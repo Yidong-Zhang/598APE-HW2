@@ -7,7 +7,7 @@ memory-leak fix. The detailed commands, original results, profiling evidence,
 failed attempts, and limitations are recorded in [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md).
 The inherited project description and examples follow this guide.
 
-Repository: https://github.com/Yidong-Zhang/598APE-HW2 
+Repository: https://github.com/Yidong-Zhang/598APE-HW2
 
 ### Dependencies and Tested Environment
 
@@ -33,9 +33,6 @@ were made directly on the VM, not inside Docker.
 
 ### Versions and Compiler Flags
 
-Original source revision: `f19cc633664c9a333b208049770424d58d14909e`.
-Each optimization stage includes all preceding stages. FIX-001 is a separate
-correctness fix added after the performance measurements.
 
 | Version | Additional change | Build flags | Runtime threads |
 | --- | --- | --- | --- |
@@ -73,6 +70,74 @@ make clean
 make -j4 CXXFLAGS='-std=c++17 -Wall -Wextra -I include -I.'
 ```
 
+#### Baseline Tests
+
+After compiling this stage, run each command below from its source folder.
+Outputs go to `results/reproduction/` to preserve the original measurements.
+Use another run number for repeat measurements; rerunning these commands
+with the same paths overwrites that reproduction run.
+
+```bash
+mkdir -p results/reproduction
+```
+
+Diabetes:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/baseline-diabetes-run1.time.log \
+  ./genetic_benchmark diabetes \
+  > results/reproduction/baseline-diabetes-run1.rkt \
+  2> results/reproduction/baseline-diabetes-run1.stderr.log
+```
+
+Cancer:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/baseline-cancer-run1.time.log \
+  ./genetic_benchmark cancer \
+  > results/reproduction/baseline-cancer-run1.rkt \
+  2> results/reproduction/baseline-cancer-run1.stderr.log
+```
+
+Housing:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/baseline-housing-run1.time.log \
+  ./genetic_benchmark housing \
+  > results/reproduction/baseline-housing-run1.rkt \
+  2> results/reproduction/baseline-housing-run1.stderr.log
+```
+
+Silk-wave:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/baseline-silk-wave-run1.time.log \
+  ./genetic_benchmark silk-wave \
+  > results/reproduction/baseline-silk-wave-run1.rkt \
+  2> results/reproduction/baseline-silk-wave-run1.stderr.log
+```
+
+Square-wave:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/baseline-square-wave-run1.time.log \
+  ./genetic_benchmark square-wave \
+  > results/reproduction/baseline-square-wave-run1.rkt \
+  2> results/reproduction/baseline-square-wave-run1.stderr.log
+```
+
+Render the saved image formulas after timing:
+
+```bash
+racket results/reproduction/baseline-silk-wave-run1.rkt results/reproduction/baseline-silk-wave-run1.png
+racket results/reproduction/baseline-square-wave-run1.rkt results/reproduction/baseline-square-wave-run1.png
+```
+
 ### Apply Optimizations in Experiment Order
 
 Starting from the baseline source above, apply the following changes in order.
@@ -85,6 +150,74 @@ actual experiment sequence; separate stage commits are not required.
 ```bash
 make clean
 make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.'
+```
+
+#### OPT-001 Tests
+
+After compiling this stage, run each command below from its source folder.
+Outputs go to `results/reproduction/` to preserve the original measurements.
+Use another run number for repeat measurements; rerunning these commands
+with the same paths overwrites that reproduction run.
+
+```bash
+mkdir -p results/reproduction
+```
+
+Diabetes:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt01-O2-diabetes-run1.time.log \
+  ./genetic_benchmark diabetes \
+  > results/reproduction/opt01-O2-diabetes-run1.rkt \
+  2> results/reproduction/opt01-O2-diabetes-run1.stderr.log
+```
+
+Cancer:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt01-O2-cancer-run1.time.log \
+  ./genetic_benchmark cancer \
+  > results/reproduction/opt01-O2-cancer-run1.rkt \
+  2> results/reproduction/opt01-O2-cancer-run1.stderr.log
+```
+
+Housing:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt01-O2-housing-run1.time.log \
+  ./genetic_benchmark housing \
+  > results/reproduction/opt01-O2-housing-run1.rkt \
+  2> results/reproduction/opt01-O2-housing-run1.stderr.log
+```
+
+Silk-wave:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt01-O2-silk-wave-run1.time.log \
+  ./genetic_benchmark silk-wave \
+  > results/reproduction/opt01-O2-silk-wave-run1.rkt \
+  2> results/reproduction/opt01-O2-silk-wave-run1.stderr.log
+```
+
+Square-wave:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt01-O2-square-wave-run1.time.log \
+  ./genetic_benchmark square-wave \
+  > results/reproduction/opt01-O2-square-wave-run1.rkt \
+  2> results/reproduction/opt01-O2-square-wave-run1.stderr.log
+```
+
+Render the saved image formulas after timing:
+
+```bash
+racket results/reproduction/opt01-O2-silk-wave-run1.rkt results/reproduction/opt01-O2-silk-wave-run1.png
+racket results/reproduction/opt01-O2-square-wave-run1.rkt results/reproduction/opt01-O2-square-wave-run1.png
 ```
 
 2. **OPT-002:** in `src/reg_stack.h`, replace only `push` and `pop` with:
@@ -108,6 +241,74 @@ DataT pop() {
 
 Clean and rebuild with the OPT-001 command, retaining `-O2`.
 
+#### OPT-002 Tests
+
+After compiling this stage, run each command below from its source folder.
+Outputs go to `results/reproduction/` to preserve the original measurements.
+Use another run number for repeat measurements; rerunning these commands
+with the same paths overwrites that reproduction run.
+
+```bash
+mkdir -p results/reproduction
+```
+
+Diabetes:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt02-stack-diabetes-run1.time.log \
+  ./genetic_benchmark diabetes \
+  > results/reproduction/opt02-stack-diabetes-run1.rkt \
+  2> results/reproduction/opt02-stack-diabetes-run1.stderr.log
+```
+
+Cancer:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt02-stack-cancer-run1.time.log \
+  ./genetic_benchmark cancer \
+  > results/reproduction/opt02-stack-cancer-run1.rkt \
+  2> results/reproduction/opt02-stack-cancer-run1.stderr.log
+```
+
+Housing:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt02-stack-housing-run1.time.log \
+  ./genetic_benchmark housing \
+  > results/reproduction/opt02-stack-housing-run1.rkt \
+  2> results/reproduction/opt02-stack-housing-run1.stderr.log
+```
+
+Silk-wave:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt02-stack-silk-wave-run1.time.log \
+  ./genetic_benchmark silk-wave \
+  > results/reproduction/opt02-stack-silk-wave-run1.rkt \
+  2> results/reproduction/opt02-stack-silk-wave-run1.stderr.log
+```
+
+Square-wave:
+
+```bash
+/usr/bin/time -v \
+  -o results/reproduction/opt02-stack-square-wave-run1.time.log \
+  ./genetic_benchmark square-wave \
+  > results/reproduction/opt02-stack-square-wave-run1.rkt \
+  2> results/reproduction/opt02-stack-square-wave-run1.stderr.log
+```
+
+Render the saved image formulas after timing:
+
+```bash
+racket results/reproduction/opt02-stack-silk-wave-run1.rkt results/reproduction/opt02-stack-silk-wave-run1.png
+racket results/reproduction/opt02-stack-square-wave-run1.rkt results/reproduction/opt02-stack-square-wave-run1.png
+```
+
 3. **OPT-003:** in `src/program.cpp`, add the following pragma immediately
    before `execute_kernel`'s outer `for (uint64_t pid = 0; pid < n_progs; ++pid)`
    loop. Build with `-O2 -fopenmp` and the common flags from the table.
@@ -119,6 +320,74 @@ Clean and rebuild with the OPT-001 command, retaining `-O2`.
 ```bash
 make clean
 make -j4 CXXFLAGS='-std=c++17 -O2 -fopenmp -Wall -Wextra -I include -I.'
+```
+
+#### OPT-003 Tests
+
+After compiling this stage, run each command below from its source folder.
+Outputs go to `results/reproduction/` to preserve the original measurements.
+Use another run number for repeat measurements; rerunning these commands
+with the same paths overwrites that reproduction run.
+
+```bash
+mkdir -p results/reproduction
+```
+
+Diabetes:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt03-openmp4-diabetes-run1.time.log \
+  ./genetic_benchmark diabetes \
+  > results/reproduction/opt03-openmp4-diabetes-run1.rkt \
+  2> results/reproduction/opt03-openmp4-diabetes-run1.stderr.log
+```
+
+Cancer:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt03-openmp4-cancer-run1.time.log \
+  ./genetic_benchmark cancer \
+  > results/reproduction/opt03-openmp4-cancer-run1.rkt \
+  2> results/reproduction/opt03-openmp4-cancer-run1.stderr.log
+```
+
+Housing:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt03-openmp4-housing-run1.time.log \
+  ./genetic_benchmark housing \
+  > results/reproduction/opt03-openmp4-housing-run1.rkt \
+  2> results/reproduction/opt03-openmp4-housing-run1.stderr.log
+```
+
+Silk-wave:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt03-openmp4-silk-wave-run1.time.log \
+  ./genetic_benchmark silk-wave \
+  > results/reproduction/opt03-openmp4-silk-wave-run1.rkt \
+  2> results/reproduction/opt03-openmp4-silk-wave-run1.stderr.log
+```
+
+Square-wave:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt03-openmp4-square-wave-run1.time.log \
+  ./genetic_benchmark square-wave \
+  > results/reproduction/opt03-openmp4-square-wave-run1.rkt \
+  2> results/reproduction/opt03-openmp4-square-wave-run1.stderr.log
+```
+
+Render the saved image formulas after timing:
+
+```bash
+racket results/reproduction/opt03-openmp4-silk-wave-run1.rkt results/reproduction/opt03-openmp4-silk-wave-run1.png
+racket results/reproduction/opt03-openmp4-square-wave-run1.rkt results/reproduction/opt03-openmp4-square-wave-run1.png
 ```
 
 4. **OPT-004:** in `benchmark/genetic_benchmark.cpp`, replace the original
@@ -162,12 +431,148 @@ deep-copy passes remain.
 
 Clean and rebuild with the OPT-003 command, keeping `-O2 -fopenmp`.
 
+#### OPT-004 Tests
+
+After compiling this stage, run each command below from its source folder.
+Outputs go to `results/reproduction/` to preserve the original measurements.
+Use another run number for repeat measurements; rerunning these commands
+with the same paths overwrites that reproduction run.
+
+```bash
+mkdir -p results/reproduction
+```
+
+Diabetes:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt04-stablesort-diabetes-run1.time.log \
+  ./genetic_benchmark diabetes \
+  > results/reproduction/opt04-stablesort-diabetes-run1.rkt \
+  2> results/reproduction/opt04-stablesort-diabetes-run1.stderr.log
+```
+
+Cancer:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt04-stablesort-cancer-run1.time.log \
+  ./genetic_benchmark cancer \
+  > results/reproduction/opt04-stablesort-cancer-run1.rkt \
+  2> results/reproduction/opt04-stablesort-cancer-run1.stderr.log
+```
+
+Housing:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt04-stablesort-housing-run1.time.log \
+  ./genetic_benchmark housing \
+  > results/reproduction/opt04-stablesort-housing-run1.rkt \
+  2> results/reproduction/opt04-stablesort-housing-run1.stderr.log
+```
+
+Silk-wave:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt04-stablesort-silk-wave-run1.time.log \
+  ./genetic_benchmark silk-wave \
+  > results/reproduction/opt04-stablesort-silk-wave-run1.rkt \
+  2> results/reproduction/opt04-stablesort-silk-wave-run1.stderr.log
+```
+
+Square-wave:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt04-stablesort-square-wave-run1.time.log \
+  ./genetic_benchmark square-wave \
+  > results/reproduction/opt04-stablesort-square-wave-run1.rkt \
+  2> results/reproduction/opt04-stablesort-square-wave-run1.stderr.log
+```
+
+Render the saved image formulas after timing:
+
+```bash
+racket results/reproduction/opt04-stablesort-silk-wave-run1.rkt results/reproduction/opt04-stablesort-silk-wave-run1.png
+racket results/reproduction/opt04-stablesort-square-wave-run1.rkt results/reproduction/opt04-stablesort-square-wave-run1.png
+```
+
 5. **OPT-005:** no source edit; clean rebuild the OPT-004 source with `-O3`
    instead of `-O2`, retaining `-fopenmp`.
 
 ```bash
 make clean
 make -j4 CXXFLAGS='-std=c++17 -O3 -fopenmp -Wall -Wextra -I include -I.'
+```
+
+#### OPT-005 Tests
+
+After compiling this stage, run each command below from its source folder.
+Outputs go to `results/reproduction/` to preserve the original measurements.
+Use another run number for repeat measurements; rerunning these commands
+with the same paths overwrites that reproduction run.
+
+```bash
+mkdir -p results/reproduction
+```
+
+Diabetes:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt05-O3-diabetes-run1.time.log \
+  ./genetic_benchmark diabetes \
+  > results/reproduction/opt05-O3-diabetes-run1.rkt \
+  2> results/reproduction/opt05-O3-diabetes-run1.stderr.log
+```
+
+Cancer:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt05-O3-cancer-run1.time.log \
+  ./genetic_benchmark cancer \
+  > results/reproduction/opt05-O3-cancer-run1.rkt \
+  2> results/reproduction/opt05-O3-cancer-run1.stderr.log
+```
+
+Housing:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt05-O3-housing-run1.time.log \
+  ./genetic_benchmark housing \
+  > results/reproduction/opt05-O3-housing-run1.rkt \
+  2> results/reproduction/opt05-O3-housing-run1.stderr.log
+```
+
+Silk-wave:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt05-O3-silk-wave-run1.time.log \
+  ./genetic_benchmark silk-wave \
+  > results/reproduction/opt05-O3-silk-wave-run1.rkt \
+  2> results/reproduction/opt05-O3-silk-wave-run1.stderr.log
+```
+
+Square-wave:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt05-O3-square-wave-run1.time.log \
+  ./genetic_benchmark square-wave \
+  > results/reproduction/opt05-O3-square-wave-run1.rkt \
+  2> results/reproduction/opt05-O3-square-wave-run1.stderr.log
+```
+
+Render the saved image formulas after timing:
+
+```bash
+racket results/reproduction/opt05-O3-silk-wave-run1.rkt results/reproduction/opt05-O3-silk-wave-run1.png
+racket results/reproduction/opt05-O3-square-wave-run1.rkt results/reproduction/opt05-O3-square-wave-run1.png
 ```
 
 6. **OPT-006:** in `include/fitness.h`, add the following pragma immediately
@@ -181,6 +586,74 @@ make -j4 CXXFLAGS='-std=c++17 -O3 -fopenmp -Wall -Wextra -I include -I.'
 
 Clean and rebuild with the OPT-005 command. Test all five tasks before applying
 the later memory fix below.
+
+#### OPT-006 Tests
+
+After compiling this stage, run each command below from its source folder.
+Outputs go to `results/reproduction/` to preserve the original measurements.
+Use another run number for repeat measurements; rerunning these commands
+with the same paths overwrites that reproduction run.
+
+```bash
+mkdir -p results/reproduction
+```
+
+Diabetes:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt06-logloss4-diabetes-run1.time.log \
+  ./genetic_benchmark diabetes \
+  > results/reproduction/opt06-logloss4-diabetes-run1.rkt \
+  2> results/reproduction/opt06-logloss4-diabetes-run1.stderr.log
+```
+
+Cancer:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt06-logloss4-cancer-run1.time.log \
+  ./genetic_benchmark cancer \
+  > results/reproduction/opt06-logloss4-cancer-run1.rkt \
+  2> results/reproduction/opt06-logloss4-cancer-run1.stderr.log
+```
+
+Housing:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt06-logloss4-housing-run1.time.log \
+  ./genetic_benchmark housing \
+  > results/reproduction/opt06-logloss4-housing-run1.rkt \
+  2> results/reproduction/opt06-logloss4-housing-run1.stderr.log
+```
+
+Silk-wave:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt06-logloss4-silk-wave-run1.time.log \
+  ./genetic_benchmark silk-wave \
+  > results/reproduction/opt06-logloss4-silk-wave-run1.rkt \
+  2> results/reproduction/opt06-logloss4-silk-wave-run1.stderr.log
+```
+
+Square-wave:
+
+```bash
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v \
+  -o results/reproduction/opt06-logloss4-square-wave-run1.time.log \
+  ./genetic_benchmark square-wave \
+  > results/reproduction/opt06-logloss4-square-wave-run1.rkt \
+  2> results/reproduction/opt06-logloss4-square-wave-run1.stderr.log
+```
+
+Render the saved image formulas after timing:
+
+```bash
+racket results/reproduction/opt06-logloss4-silk-wave-run1.rkt results/reproduction/opt06-logloss4-silk-wave-run1.png
+racket results/reproduction/opt06-logloss4-square-wave-run1.rkt results/reproduction/opt06-logloss4-square-wave-run1.png
+```
 
 ### Later Memory Fix and Current Build
 
