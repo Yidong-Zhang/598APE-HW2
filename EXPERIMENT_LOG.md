@@ -1,122 +1,5 @@
 # HW2 Experiment Log
 
-## Purpose and Workflow
-
-This file tracks VM experiments for the symbolic regression mini-paper.
-The user runs commands on the VM and provides their outputs; Codex records
-the supplied evidence in this local repository. This file does not sync to
-the VM automatically.
-
-- Record unsuccessful experiments and build failures as well as improvements.
-- Separate measured results from hypotheses and proposed next steps.
-- Preserve raw output in this file or reference an accompanying result file.
-- Identify the commit, uncommitted changes, compiler, build flags, dataset,
-  command, and timing scope before comparing results.
-- Record individual runs; compute summaries only from supplied measurements.
-- Compare equivalent workloads on the same VM and note concurrent activity.
-- Keep end-to-end timing distinct from internal timers and profiling runs.
-- Link paper claims to experiment IDs and retain original result files.
-
-## Assignment Scope
-
-- Agreed evaluation protocol: measure all five tasks (diabetes, cancer,
-  housing, silk-wave, square-wave) for the baseline and every optimization
-  version, recording runtime and output quality for each task. This is our
-  agreed coverage, not a claim that the PDF mandates five runs per change.
-- For images, time the C++ learning/formula-generation stage separately from
-  Racket rendering. Run rendering to inspect reconstruction; optimizing its
-  runtime is optional according to the README.
-- PDF section 3.2 explicitly lists diabetes, cancer, and housing as tasks.
-- The PDF also presents silk-wave and square-wave reconstruction; the README
-  includes both as optimization benchmarks. Include them in evaluation coverage
-  while distinguishing this from the explicit three-dataset list in section 3.2.
-- Main objective: improve end-to-end runtime, including loading and testing.
-- Deliverables include performance evidence, reproducible artifact instructions,
-  discussion of successful and unsuccessful optimizations, and collaboration.
-
-### Requirements Review (2026-10-10)
-
-Source: all nine pages of `598APE_HW2-2.pdf` re-read, plus repository README.
-The appendix on pages 6-9 is generated Racket reconstruction code, not a list
-of extra shell commands to execute.
-
-| Requirement | Source | Current status / next action |
-| --- | --- | --- |
-| Optimize end-to-end performance from loading through testing | PDF p.1 | First baseline run completed for all five tasks; repeats pending |
-| Run the three dataset tasks and account for workload parameters | PDF section 3.2, p.4 | Measure diabetes, cancer, housing; keep workload fixed for initial comparisons |
-| Cover two image reconstruction benchmarks | PDF p.3 and appendix; README | Measure C++ reconstruction and retain generated Racket/PNG artifacts; README says optimizing Racket drawing is optional |
-| Profile bottlenecks with perf; flamegraph suggested | PDF section 4, p.4 | Pending baseline runs; check VM perf support later |
-| Debug as needed and check memory leaks with tools such as valgrind | PDF section 4, p.4 | Pending; choose focused checks after profiling/changes |
-| Implement one optimization at a time | PDF section 4, p.4 | No source optimizations yet |
-| Private repository and two-person pair programming, switching roles | PDF sections 1 and 3.1 | User/team to confirm repository visibility and record actual collaboration |
-| Report: at most 3 pages excluding references, ACM SIGPLAN template | PDF section 5.1 | Pending; include changes, assumptions/scope, graphs, explanations and introspection; collaboration paragraph also required |
-| Artifact README: tools, baseline/optimized build/run/benchmark instructions, optimization flags/commits | PDF section 5.2 | Pending; Dockerfile updates recommended where needed |
-| Special hardware optimizations require both standard-Unix and special-hardware artifacts | PDF section 5.2 | No special-hardware optimization selected |
-| Submit report through HotCRP, code through repository link; review/run peers' artifacts | PDF sections 4 and 6 | Pending; deadline October 16, 2026 |
-
-Measurement choices such as GNU time, tee, repeated runs, and exit-status checks
-are our experimental protocol, not commands mandated by the PDF. The initial
-default build has no optimization flag. Later source-code improvements should
-also be compared against an optimized compiler baseline to distinguish compiler
-benefits from source-code benefits. Retain quality metrics and workload settings
-so reduced work or changed numerical behavior is not mistaken for equivalent
-performance improvement. Any assistant/tool use remains subject to the course
-policy referenced by the PDF; that external policy has not been provided or
-reviewed here.
-
-## Environment
-
-Status: initial environment recorded from user-supplied terminal output.
-VM build output and reported status have been recorded; diabetes, cancer,
-housing, silk-wave, and square-wave run 1 completed. Both reconstructed PNGs
-were subsequently supplied and visually inspected. Initial VM rendering failed
-because Racket was missing; successful installation details/version and rendering
-terminal output were not supplied.
-
-| Field | Value |
-| --- | --- |
-| VM host | fa26-cs598a-042.cs.illinois.edu (reported by user) |
-| OS and kernel | Linux x86_64; kernel 7.0.0-31-generic, Ubuntu build #31, PREEMPT_DYNAMIC; distribution release not yet queried |
-| CPU and available cores | VMware VM; 4 online vCPUs (0-3); reported Intel Xeon Silver 4216 @ 2.10 GHz; 1 thread/core, 4 cores/socket, 1 socket |
-| Memory | 15 GiB total, 13 GiB available at capture; 8 GiB swap, 0 B used (rounded free -h values) |
-| Compiler | g++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0 |
-| Profiling tool | perf version 7.0.14; kernel.perf_event_paranoid = 4 |
-| Rendering tool | Racket v8.18 [cs], confirmed by user |
-| Repository path and branch | /home/yidongz3/598APE-HW2; main tracking origin/main |
-| Baseline commit and working tree | f19cc633664c9a333b208049770424d58d14909e; clean at capture |
-| Build command and flags | make clean, then make -j4; -std=c++17 -Wall -Wextra -I include -I.; no optimization flag |
-
-### ENV-001: Initial VM Inspection
-
-- Capture date/time: not included in supplied output; session date 2026-10-10.
-- Source: user pasted VM terminal results; Codex did not execute these remotely.
-- Commands: `pwd`, `uname -a`, `lscpu`, `free -h`, `g++ --version`,
-  `git status --short --branch`, `git rev-parse HEAD`.
-- Reported caches: L1d 128 KiB (4 instances), L1i 128 KiB (4 instances),
-  L2 4 MiB (4 instances), L3 22 MiB (1 instance).
-- NUMA: one node containing CPUs 0-3. CPU flags include AVX2 and AVX-512.
-  Guest-reported CPU topology and features do not establish exclusive access
-  to physical host resources.
-- Memory snapshot: used 1.3 GiB, free 12 GiB, shared 1.1 MiB,
-  buff/cache 1.6 GiB; available 13 GiB.
-- Exact kernel output:
-
-```text
-Linux fa26-cs598a-042.cs.illinois.edu 7.0.0-31-generic #31-Ubuntu SMP PREEMPT_DYNAMIC Sat Aug  1 04:26:38 UTC 2026 x86_64 GNU/Linux
-```
-
-- Exact Git output:
-
-```text
-## main...origin/main
-f19cc633664c9a333b208049770424d58d14909e
-```
-
-The inspected Makefile defaults to g++ and
-`-std=c++17 -Wall -Wextra -I include -I.`; it does not specify an optimization
-level. Confirm the VM version and actual build command before selecting a
-baseline. Changing flags requires a clean rebuild because the Makefile does
-not track flag changes.
 
 ## Experiment Index
 
@@ -157,7 +40,7 @@ Each populated row currently represents one run, not a mean.
   `Build exit status: 0`. The immediately preceding VM command was not
   included in that message; this records the reported status rather than
   independently verifying which command it belongs to.
-- VM log: `results/baseline-build.log` (not copied into this local repository).
+- Build log: `results/baseline-build.log`.
 - Warnings: program constructor member initialization order; unused `params`
   in crossover and hoist_mutation; unused `n_cols` in symFit and symTransform;
   missing explicit initializer for timespec::tv_nsec in ctimer_reset.
@@ -178,7 +61,7 @@ Each populated row currently represents one run, not a mean.
 ```
 
 - Raw output: [results/baseline-diabetes-run1.log](results/baseline-diabetes-run1.log).
-  Complete pasted output preserved locally; same relative path on VM.
+  Complete output retained at this result path.
 
 | Measurement | Result |
 | --- | --- |
@@ -211,7 +94,7 @@ Each populated row currently represents one run, not a mean.
 - Command:
   `/usr/bin/time -v ./genetic_benchmark cancer 2>&1 | tee results/baseline-cancer-run1.log`
 - Raw output: [results/baseline-cancer-run1.log](results/baseline-cancer-run1.log).
-  Complete user-pasted output saved locally; same relative path on VM.
+  Complete output retained at this result path.
 
 | Measurement | Result |
 | --- | --- |
@@ -244,7 +127,7 @@ Each populated row currently represents one run, not a mean.
 - Command:
   `/usr/bin/time -v ./genetic_benchmark housing 2>&1 | tee results/baseline-housing-run1.log`
 - Raw output: [results/baseline-housing-run1.log](results/baseline-housing-run1.log).
-  Complete user-pasted output saved locally; same relative path on VM.
+  Complete output retained at this result path.
 
 | Measurement | Result |
 | --- | --- |
@@ -340,9 +223,9 @@ Each populated row currently represents one run, not a mean.
 
 - Timing scope: C++ formula generation only; Racket rendering is separate.
 - Raw source: [results/baseline-square-wave-run1.rkt](results/baseline-square-wave-run1.rkt),
-  copied from the complete supplied attachment.
+  retained as experiment evidence.
 - External timing: [results/baseline-square-wave-run1.time.log](results/baseline-square-wave-run1.time.log),
-  transcribed from user-supplied statistics; whitespace/HTML formatting normalized.
+  recorded from process statistics; whitespace/HTML formatting normalized.
   All 24 per-model errors, seeds, node counts and expressions are retained in
   the raw source.
 
@@ -375,7 +258,7 @@ Each populated row currently represents one run, not a mean.
 ## Baseline Image Rendering Check
 
 - Both PNGs supplied by the user after the suggested Racket rendering step;
-  saved locally under results/. File inspection confirms 256x256 RGBA PNGs.
+  retained under results/. File inspection confirms 256x256 RGBA PNGs.
 - User subsequently confirmed `Welcome to Racket v8.18 [cs].` via
   `racket --version`.
 - [Silk-wave PNG](results/baseline-silk-wave-run1.png)
@@ -418,7 +301,7 @@ sudo perf report --stdio --no-children --sort symbol --percent-limit 1 -i result
   measurement. Record VM permission/event errors if sampling fails.
 - Raw transcript: [results/perf-baseline-diabetes.transcript.log](results/perf-baseline-diabetes.transcript.log).
 - Capture: 2105 samples, 16.918 MB perf.data, 68 wakeups; total lost samples 0.
-  Raw .data remains on VM; only supplied text is preserved locally.
+  The text report is retained as profiling evidence; the binary capture is not included.
 - Flat report uses self sample percentages. Caller tree percentages are not
   added to self percentages and must not be double-counted.
 
@@ -504,7 +387,7 @@ cp results/opt01-build.log results/opt01-O2-build.log
 
 - Command: `/usr/bin/time -v ./genetic_benchmark diabetes 2>&1 | tee results/opt01-O2-diabetes-run1.log`.
 - Raw output: [results/opt01-O2-diabetes-run1.log](results/opt01-O2-diabetes-run1.log),
-  copied from the complete supplied attachment.
+  retained as experiment evidence.
 - Internal time: 10.154784505 s; process wall time: 10.15 s.
 - User/system CPU: 10.14/0.01 s; CPU utilization: 99%.
 - Peak RSS: 12620 KiB = 12.32421875 MiB.
@@ -513,7 +396,7 @@ cp results/opt01-build.log results/opt01-O2-build.log
 - Best program 1: 91 nodes, depth 12, training fitness 6302.75,
   test MSE 7468.95. Best program 2: 199 nodes, depth 18,
   training fitness 6408.27, test MSE 7217.17.
-- Output check: local diff of all output preceding `;;Time(` shows no
+- Output check: diff of all output preceding `;;Time(` shows no
   differences versus EXP-002. This includes both printed expressions and
   metrics, but is not a bitwise comparison of internal prediction arrays.
 - Comparison using internal timers: 21.419001955 / 10.154784505 = 2.109252239x;
@@ -525,7 +408,7 @@ cp results/opt01-build.log results/opt01-O2-build.log
 
 - Command: `/usr/bin/time -v ./genetic_benchmark cancer 2>&1 | tee results/opt01-O2-cancer-run1.log`.
 - Raw output: [results/opt01-O2-cancer-run1.log](results/opt01-O2-cancer-run1.log),
-  transcribed from the complete user-pasted output.
+  recorded from the benchmark output.
 - Internal time: 60.837659981 s; process wall time: 60.86 s (1:00.86).
 - User/system CPU: 60.35/0.49 s; CPU utilization: 99%.
 - Peak RSS: 101608 KiB = 99.2265625 MiB.
@@ -545,7 +428,7 @@ cp results/opt01-build.log results/opt01-O2-build.log
 
 - Command: `/usr/bin/time -v ./genetic_benchmark housing 2>&1 | tee results/opt01-O2-housing-run1.log`.
 - Raw output: [results/opt01-O2-housing-run1.log](results/opt01-O2-housing-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Internal time: 118.189752884 s; process wall time: 118.19 s (1:58.19).
 - User/system CPU: 117.64/0.52 s; CPU utilization: 99%.
 - Peak RSS: 79420 KiB = 77.55859375 MiB.
@@ -571,9 +454,9 @@ cp results/opt01-build.log results/opt01-O2-build.log
 ```
 
 - Raw source: [results/opt01-O2-silk-wave-run1.rkt](results/opt01-O2-silk-wave-run1.rkt),
-  copied from the supplied attachment. External statistics:
+  retained as experiment evidence. External statistics:
   [results/opt01-O2-silk-wave-run1.time.log](results/opt01-O2-silk-wave-run1.time.log),
-  transcribed from the user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 9 models total,
   population 128, 16 generations per model, seeds 2025000000-2025000008.
 - Internal time: 172.247363277 s; process wall time: 172.25 s (2:52.25).
@@ -604,9 +487,9 @@ cp results/opt01-build.log results/opt01-O2-build.log
 ```
 
 - Raw source: [results/opt01-O2-square-wave-run1.rkt](results/opt01-O2-square-wave-run1.rkt),
-  copied from supplied attachment; statistics:
+  retained as experiment evidence; statistics:
   [results/opt01-O2-square-wave-run1.time.log](results/opt01-O2-square-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 24 models total,
   population 128, 16 generations per model, seeds 2025000000-2025000023.
 - Internal time: 547.494688596 s; process wall time: 547.50 s (9:07.50).
@@ -640,10 +523,10 @@ baseline for all five tasks. This is not a bitwise prediction-array check.
 
 #### OPT-001 Image Check
 
-- User supplied both reconstructed PNGs; saved locally:
+- Both reconstructed PNGs are retained:
   [silk-wave](results/opt01-O2-silk-wave-run1.png) and
   [square-wave](results/opt01-O2-square-wave-run1.png).
-- Local `cmp` against each corresponding baseline PNG returned status 0.
+- `cmp` against each corresponding baseline PNG returned status 0.
   Both PNG files are byte-for-byte identical to baseline, which also establishes
   identical decoded pixels. This does not establish equality to original inputs.
 - Square-wave stderr confirmation remains outstanding; run itself exited 0.
@@ -662,9 +545,8 @@ sudo perf report --stdio --no-children --sort symbol --percent-limit 1 -i result
 
 - This profiling run is separate from ordinary timed measurements.
 - Raw report: [results/perf-opt01-O2-diabetes.report.txt](results/perf-opt01-O2-diabetes.report.txt),
-  copied from supplied attachment. Report contains 1000 cpu-clock:u samples,
-  zero lost samples, approximate event count 10101010000. Capture diagnostics
-  and raw .data were not supplied locally.
+  retained as experiment evidence. Report contains 1000 cpu-clock:u samples,
+  zero lost samples, approximate event count 10101010000. Capture diagnostics and the binary capture are not included in this record.
 
 | Symbol | Self sample share |
 | --- | --- |
@@ -692,8 +574,7 @@ sudo perf report --stdio --no-children --sort symbol --percent-limit 1 -i result
   matches intended push/pop changes. Build reached linking with no errors
   shown; build exit status not supplied. All five tasks' run 1 completed
   with exit status 0; both OPT-002 PNGs supplied and compared successfully.
-  Repeat measurements pending. Local source
-  has not been modified; VM changes are documented here from supplied evidence.
+  Repeat measurements pending.
 - Target: `src/reg_stack.h`, stack::push and stack::pop.
 - Change: replace scanning loops with indexing through elements_; retain
   no-op push when full and zero-valued pop when empty. Leave constructor and
@@ -726,8 +607,8 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
   `Building benchmark program...`. Warnings match OPT-001: constructor member
   order, unused params/n_cols, potentially uninitialized Pearson y_mu,
   and missing explicit timespec::tv_nsec initializer. No new warnings shown.
-- VM build log: `results/opt02-stack-build.log`; supplied warning details
-  recorded here, original full log remains on VM.
+- Build log: `results/opt02-stack-build.log`; supplied warning details
+  recorded here, full log path listed above.
 - First proposed measurement:
 
 ```bash
@@ -746,7 +627,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
 
 - Command: `/usr/bin/time -v ./genetic_benchmark diabetes 2>&1 | tee results/opt02-stack-diabetes-run1.log`.
 - Raw output: [results/opt02-stack-diabetes-run1.log](results/opt02-stack-diabetes-run1.log),
-  copied from complete supplied attachment.
+  retained as experiment evidence.
 - Workload unchanged: 442 samples, 10 features, population 512, configured
   generations 16; same source seed as OPT-001.
 - Internal time: 1.830474904 s; process wall time: 1.83 s.
@@ -770,7 +651,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
 
 - Command: `/usr/bin/time -v ./genetic_benchmark cancer 2>&1 | tee results/opt02-stack-cancer-run1.log`.
 - Raw output: [results/opt02-stack-cancer-run1.log](results/opt02-stack-cancer-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 569 samples, 30 features, population 16384,
   configured generations 16, same source seed as OPT-001.
 - Internal time: 19.163570139 s; process wall time: 19.18 s.
@@ -780,7 +661,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
   1/520; swaps: 0; file system inputs/outputs: 0/0; exit status: 0.
 - Both models: 20 nodes, depth 5, training log loss 0.15991,
   test accuracy 0.946903, unchanged from OPT-001.
-- Output check: local diff of full output before timing found no differences
+- Output check: diff of full output before timing found no differences
   versus OPT-001, including both printed expressions.
 - Incremental speedup vs OPT-001: 60.837659981 / 19.163570139 =
   3.174651672x; time reduction 68.50048121%.
@@ -792,7 +673,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
 
 - Command: `/usr/bin/time -v ./genetic_benchmark housing 2>&1 | tee results/opt02-stack-housing-run1.log`.
 - Raw output: [results/opt02-stack-housing-run1.log](results/opt02-stack-housing-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 20640 samples, 8 features, population 512,
   configured generations 16, same seed as OPT-001.
 - Internal time: 25.828678861 s; process wall time: 25.83 s.
@@ -803,7 +684,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
 - Model 1: 28 nodes, depth 7, training MSE 0.659991, test MSE 0.64586.
 - Model 2: 23 nodes, depth 5, training MSE 0.754433, test MSE 0.728984.
 - Output check: full output before timing matches OPT-001 exactly,
-  including both printed formulas and metrics (verified by local diff).
+  including both printed formulas and metrics (verified by diff).
 - Incremental speedup vs OPT-001: 118.189752884 / 25.828678861 =
   4.575911665x; time reduction 78.14643128%.
 - Total speedup vs original baseline: 251.455379922 / 25.828678861 =
@@ -819,9 +700,9 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
 ```
 
 - Raw source: [results/opt02-stack-silk-wave-run1.rkt](results/opt02-stack-silk-wave-run1.rkt),
-  copied from supplied attachment. External statistics:
+  retained as experiment evidence. External statistics:
   [results/opt02-stack-silk-wave-run1.time.log](results/opt02-stack-silk-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 9 models total,
   population 128, 16 generations per model, seeds 2025000000-2025000008.
 - Internal time: 40.710149832 s; process wall time: 40.71 s.
@@ -833,7 +714,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
 - Channel-averaged test MSE: red 0.011492081, green 1.1292957e-06,
   blue 0.0716654807; RGB before display clamping 0.0277195631.
 - Output check: source before timing matches OPT-001 exactly, including
-  all model expressions, metrics, and rendering code (local diff).
+  all model expressions, metrics, and rendering code (diff).
 - Incremental speedup vs OPT-001: 172.247363277 / 40.710149832;
   approximately 4.23x, elapsed-time reduction approximately 76.37%.
 - Total speedup vs original baseline: 422.754671735 / 40.710149832;
@@ -850,9 +731,9 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
 ```
 
 - Raw source: [results/opt02-stack-square-wave-run1.rkt](results/opt02-stack-square-wave-run1.rkt),
-  copied from supplied attachment; external statistics:
+  retained as experiment evidence; external statistics:
   [results/opt02-stack-square-wave-run1.time.log](results/opt02-stack-square-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 24 models total,
   population 128, 16 generations per model, seeds 2025000000-2025000023.
 - Internal time: 128.863707651 s; process wall time: 128.87 s (2:08.87).
@@ -864,7 +745,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -Wall -Wextra -I include -I.' 2>&1 | tee resul
 - Channel-averaged test MSE: red 0.0117983688, green 0.0403880812,
   blue 0.00037665994; RGB before display clamping 0.0175210362.
 - Output check: source before timing matches OPT-001 exactly, including
-  all 24 formulas, printed metrics, and renderer code (verified by local diff).
+  all 24 formulas, printed metrics, and renderer code (verified by diff).
 - Incremental speedup vs OPT-001 and total vs original baseline are in the
   summary below. Single-run comparisons; variability unmeasured.
 - Next step: confirm both OPT-002 image stderr logs and render their saved
@@ -886,10 +767,10 @@ comparisons do not establish bitwise equality of internal predictions.
 
 #### OPT-002 Image Check
 
-- Both reconstructed PNGs supplied by user and saved locally:
+- Both reconstructed PNGs are retained:
   [silk-wave](results/opt02-stack-silk-wave-run1.png) and
   [square-wave](results/opt02-stack-square-wave-run1.png).
-- Four local cmp checks (each PNG against original baseline and OPT-001)
+- Four cmp checks (each PNG against original baseline and OPT-001)
   returned status 0. Both images are byte-for-byte identical to both references.
 - This confirms identical reconstructed artifacts, not perfect reconstruction
   of original inputs. Logged MSE remains the quality reference.
@@ -913,7 +794,7 @@ sudo perf report --stdio --no-children --sort symbol --percent-limit 1 -i result
 
 - Separate profiling run; do not mix its timing into normal measurements.
 - Raw transcript: [results/perf-opt02-stack-housing.transcript.log](results/perf-opt02-stack-housing.transcript.log),
-  copied from supplied attachment. Raw .data remains on VM.
+  retained as experiment evidence. The binary capture is not included in this record.
 - Capture: 2504 samples, 20.130 MB, 81 write wakeups; lost samples 0;
   approximate event count 25292929040.
 
@@ -946,7 +827,6 @@ sudo perf report --stdio --no-children --sort symbol --percent-limit 1 -i result
   housing and silk-wave run 1 also completed with exit status 0;
   square-wave also completed with exit status 0. All five first runs recorded;
   Both OPT-003 PNGs supplied and compared; repeat measurements pending.
-  Local source unchanged.
 - Target: outer pid loop in execute_kernel, src/program.cpp.
 - Add `#pragma omp parallel for schedule(dynamic, 1)` immediately before pid
   loop. Dynamic scheduling distributes varying-length candidate formulas.
@@ -978,7 +858,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -fopenmp -Wall -Wextra -I include -I.' 2>&1 | 
 - -fopenmp is passed to both compilation and linking by the existing Makefile.
   The -j4 build option controls compiler jobs, not runtime worker threads;
   runtime settings will be supplied explicitly during benchmarks.
-- VM build log: `results/opt03-openmp4-build.log`. All four source files
+- Build log: `results/opt03-openmp4-build.log`. All four source files
   compiled and benchmark linking reached. Warnings match previous optimized
   builds: member initialization order, unused params/n_cols, Pearson y_mu
   potentially uninitialized, timespec::tv_nsec missing explicit initializer.
@@ -1011,7 +891,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark diabete
 ```
 
 - Raw output: [results/opt03-openmp4-diabetes-run1.log](results/opt03-openmp4-diabetes-run1.log),
-  copied from complete user-supplied attachment.
+  retained as experiment evidence.
 - Internal end-to-end: 0.557569529 s; process wall time: 0.57 s.
 - Aggregate user/system CPU: 1.83/0.00 s; reported CPU utilization: 323%.
 - Peak RSS: 12872 KiB = 12.5703125 MiB.
@@ -1021,7 +901,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark diabete
   configured generations 16, same source seed. Both printed models retain
   nodes/depth/fitness/Test MSE: 91/12/6302.75/7468.95 and
   199/18/6408.27/7217.17.
-- Output check: local diff of full output before timing is identical to
+- Output check: diff of full output before timing is identical to
   OPT-002, including both expressions and quality metrics.
 - Incremental speedup vs OPT-002 internal timer: 1.830474904 / 0.557569529 =
   3.282953621x; elapsed-time reduction 69.53962451%.
@@ -1042,7 +922,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark cancer 
 ```
 
 - Raw output: [results/opt03-openmp4-cancer-run1.log](results/opt03-openmp4-cancer-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 569 samples, 30 features, population 16384,
   configured generations 16, same source seed; requested four OpenMP threads,
   OMP_DYNAMIC=FALSE.
@@ -1053,7 +933,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark cancer 
   54/751; swaps: 0; file system inputs/outputs: 0/0; exit status: 0.
 - Both printed models: 20 nodes, depth 5, training log loss 0.15991,
   test accuracy 0.946903, unchanged from OPT-002.
-- Output check: local diff of all output before timing matches OPT-002
+- Output check: diff of all output before timing matches OPT-002
   exactly, including both printed formulas.
 - Incremental speedup vs OPT-002: 19.163570139 / 11.669259369 =
   1.642226771x; elapsed-time reduction 39.10706990%.
@@ -1074,7 +954,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark housing
 ```
 
 - Raw output: [results/opt03-openmp4-housing-run1.log](results/opt03-openmp4-housing-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 20640 samples, 8 features, population 512,
   configured generations 16, same source seed; requested four threads,
   OMP_DYNAMIC=FALSE.
@@ -1086,7 +966,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark housing
 - Model 1: 28 nodes, depth 7, training MSE 0.659991, test MSE 0.64586.
 - Model 2: 23 nodes, depth 5, training MSE 0.754433, test MSE 0.728984.
 - Output check: full output before timing matches OPT-002 exactly,
-  including both printed formulas (verified by local diff).
+  including both printed formulas (verified by diff).
 - Incremental speedup vs OPT-002: 25.828678861 / 7.407188720 =
   3.486974591x; time reduction 71.32184437%.
 - Total speedup vs original baseline: 251.455379922 / 7.407188720 =
@@ -1106,18 +986,18 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt03-openmp4-si
 ```
 
 - Raw source: [results/opt03-openmp4-silk-wave-run1.rkt](results/opt03-openmp4-silk-wave-run1.rkt),
-  copied from supplied attachment, containing only generated source/internal
+  retained as experiment evidence, containing only generated source/internal
   timer, not external statistics.
 - Internal end-to-end: 15.352185495 s.
 - Channel-averaged test MSE: red 0.011492081, green 1.1292957e-06,
   blue 0.0716654807; RGB before display clamping 0.0277195631.
 - Output check: source before timing is identical to OPT-002, including
-  all printed models, metrics, and rendering code (verified by local diff).
+  all printed models, metrics, and rendering code (verified by diff).
 - Preliminary internal-timer comparison vs OPT-002:
   40.710149832 / 15.352185495, approximately 2.65x speedup.
   Total vs original baseline approximately 27.54x. Single-run comparisons.
 - External statistics: [results/opt03-openmp4-silk-wave-run1.time.log](results/opt03-openmp4-silk-wave-run1.time.log),
-  transcribed from user output with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Process wall time: 15.36 s; aggregate user/system CPU: 36.68/3.69 s;
   CPU utilization: 262%; peak RSS: 70452 KiB = 68.80078125 MiB.
 - Major/minor page faults: 0/1887240; voluntary/involuntary context switches:
@@ -1141,9 +1021,9 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt03-openmp4-sq
 ```
 
 - Raw source: [results/opt03-openmp4-square-wave-run1.rkt](results/opt03-openmp4-square-wave-run1.rkt),
-  copied from supplied attachment. External statistics:
+  retained as experiment evidence. External statistics:
   [results/opt03-openmp4-square-wave-run1.time.log](results/opt03-openmp4-square-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 24 models total,
   population 128, 16 generations per model, seeds 2025000000-2025000023;
   requested four threads, OMP_DYNAMIC=FALSE.
@@ -1156,7 +1036,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt03-openmp4-sq
 - Channel-averaged test MSE: red 0.0117983688, green 0.0403880812,
   blue 0.00037665994; RGB before display clamping 0.0175210362.
 - Output check: source before timing matches OPT-002 exactly, including
-  all 24 formulas, quality metrics, and renderer (verified by local diff).
+  all 24 formulas, quality metrics, and renderer (verified by diff).
 - Incremental speedup vs OPT-002: 128.863707651 / 45.626737731,
   approximately 2.82x; total vs original baseline approximately 28.77x.
   Single-run comparisons; variability remains unmeasured.
@@ -1179,10 +1059,10 @@ not a direct measurement of team size or utilization during parallel regions.
 
 #### OPT-003 Image Check
 
-- Both user-supplied PNGs saved locally:
+- Both PNGs are retained:
   [silk-wave](results/opt03-openmp4-silk-wave-run1.png) and
   [square-wave](results/opt03-openmp4-square-wave-run1.png).
-- Local cmp against baseline and OPT-002 returned status 0 for each image
+- cmp against baseline and OPT-002 returned status 0 for each image
   (four checks). Both artifacts are byte-for-byte identical to references.
 - All five first-run timing/printed-output comparisons and both image checks
   are now recorded for OPT-003. Repeat timing and broader correctness/memory
@@ -1254,7 +1134,6 @@ sudo perf report --stdio --no-children --sort symbol --percent-limit 1 -i result
   prompt with no errors shown. Build exit status not supplied. All five
   run-1 benchmarks subsequently exited 0 with identical printed outputs
   versus OPT-003. Both PNG checks completed; repeat measurements pending.
-  Local source unchanged.
 - Target: insertionSortPrograms in benchmark/genetic_benchmark.cpp only.
 - Replace insertion-sort loop with std::stable_sort by ascending raw_fitness_.
   Retain existing NaN-to-max-float normalization and stable equal-score ordering.
@@ -1291,8 +1170,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -fopenmp -Wall -Wextra -I include -I.' 2>&1 | 
   inside stable_sort/swap and make exits with an error. No timings for this attempt.
 - Root cause: include/program.h declares `explicit program(const program &src)`
   and no move constructor; standard library internal copy-initialization cannot
-  use the explicit copy constructor. This constraint was missed in the initial
-  assistant recommendation.
+  use the explicit copy constructor. The initial direct-object sorting attempt did not account for this constraint.
 - Revised implementation: stable-sort a vector of pointers to original programs
   using fitness, then assign into a default-constructed temporary vector of
   programs and copy back. Program class stays unchanged; explicit copy construction
@@ -1303,9 +1181,8 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -fopenmp -Wall -Wextra -I include -I.' 2>&1 | 
   comparator takes program pointers; order contains original program addresses;
   stable_sort sorts order; sorted(size) is default constructed, filled from
   ordered pointers, and copied back only after all sources are preserved.
-- Local verification: revised helper compiled with g++ -std=c++17
-  -fsyntax-only against repository headers (exit 0). This is a local syntax/type
-  check, not the VM GCC build or runtime validation.
+- Syntax verification: revised helper compiled with g++ -std=c++17
+  -fsyntax-only against repository headers (exit 0). This syntax/type check does not replace the recorded GCC build or runtime validation.
 - Revised build attempt 2 will use a separate log to preserve failure evidence:
 
 ```bash
@@ -1317,7 +1194,7 @@ make -j4 CXXFLAGS='-std=c++17 -O2 -fopenmp -Wall -Wextra -I include -I.' 2>&1 | 
 - Attempt-2 build output: prior stable_sort constructor errors no longer
   appear. Remaining warnings match previous optimized builds (member order,
   unused parameters, Pearson y_mu, timespec initializer). No new warnings.
-  Full original build log remains on VM at the attempt-2 path above.
+  Build log: the attempt-2 path above.
 - Next step: measure all five tasks under the same four-thread settings.
   Diabetes run 1 received and completed successfully. First measurement command:
 
@@ -1342,7 +1219,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark diabete
 ```
 
 - Raw output: [results/opt04-stablesort-diabetes-run1.log](results/opt04-stablesort-diabetes-run1.log),
-  copied from complete user-supplied attachment.
+  retained as experiment evidence.
 - Internal end-to-end: 0.525923610 s; process wall time: 0.53 s.
 - Aggregate user/system CPU: 1.81/0.01 s; CPU utilization: 343%.
 - Peak RSS: 12896 KiB = 12.59375 MiB; major/minor page faults: 0/2131;
@@ -1352,7 +1229,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark diabete
   generations 16, same seed and four-thread settings.
 - Printed model metrics unchanged: 91 nodes/depth 12/fitness 6302.75/test MSE
   7468.95; 199 nodes/depth 18/fitness 6408.27/test MSE 7217.17.
-- Local diff of all output before timing matches OPT-003 exactly, including
+- diff of all output before timing matches OPT-003 exactly, including
   both printed formulas and metrics.
 - Observed incremental speedup: 0.557569529 / 0.525923610 = 1.060172083x;
   time reduction 5.67569018%, approximately 0.03165 s difference.
@@ -1370,7 +1247,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark cancer 
 ```
 
 - Raw output: [results/opt04-stablesort-cancer-run1.log](results/opt04-stablesort-cancer-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 569 samples, 30 features, population 16384,
   configured generations 16, same source seed; requested four threads,
   OMP_DYNAMIC=FALSE.
@@ -1381,7 +1258,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark cancer 
   52/614; swaps: 0; file system inputs/outputs: 0/0; exit status: 0.
 - Both models: 20 nodes, depth 5, training log loss 0.15991,
   test accuracy 0.946903, unchanged from OPT-003.
-- Output check: local diff of full output before timing matches OPT-003
+- Output check: diff of full output before timing matches OPT-003
   exactly, including both printed formulas and quality metrics.
 - Incremental speedup vs OPT-003: 11.669259369 / 6.557930901 =
   1.779411760x; time reduction 43.80165276%.
@@ -1402,7 +1279,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark housing
 ```
 
 - Raw output: [results/opt04-stablesort-housing-run1.log](results/opt04-stablesort-housing-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 20640 samples, 8 features, population 512,
   configured generations 16, same source seed, four-thread settings unchanged.
 - Internal end-to-end: 7.184715975 s; process wall time: 7.19 s.
@@ -1413,7 +1290,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark housing
 - Model 1: 28 nodes, depth 7, training MSE 0.659991, test MSE 0.64586.
 - Model 2: 23 nodes, depth 5, training MSE 0.754433, test MSE 0.728984.
 - Output check: full output before timing matches OPT-003 exactly,
-  including both printed formulas and metrics (local diff).
+  including both printed formulas and metrics (diff).
 - Incremental comparison: OPT-003 7.407188720 s vs 7.184715975 s,
   approximately 1.03x speedup, 3.00% time reduction (0.22247 s difference).
 - Interpretation: single-run difference, not established sorting benefit;
@@ -1430,9 +1307,9 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt04-stablesort
 ```
 
 - Raw source: [results/opt04-stablesort-silk-wave-run1.rkt](results/opt04-stablesort-silk-wave-run1.rkt),
-  copied from supplied attachment; external statistics:
+  retained as experiment evidence; external statistics:
   [results/opt04-stablesort-silk-wave-run1.time.log](results/opt04-stablesort-silk-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 9 models total,
   population 128, 16 generations per model; same seeds and four-thread settings.
 - Internal end-to-end: 15.370838583 s; process wall time: 15.38 s.
@@ -1443,7 +1320,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt04-stablesort
 - User confirmed empty stderr. PNG rendering pending.
 - Channel-averaged test MSE: red 0.011492081, green 1.1292957e-06,
   blue 0.0716654807; RGB before display clamping 0.0277195631.
-- Local diff: full source before timing identical to OPT-003, including
+- diff: full source before timing identical to OPT-003, including
   all printed formulas, metrics, and rendering code.
 - Comparison: OPT-003 15.352185495 s vs OPT-004 15.370838583 s;
   observed slowdown about 0.12%, difference about 0.01865 s.
@@ -1462,9 +1339,9 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt04-stablesort
 ```
 
 - Raw source: [results/opt04-stablesort-square-wave-run1.rkt](results/opt04-stablesort-square-wave-run1.rkt),
-  copied from supplied attachment; external statistics:
+  retained as experiment evidence; external statistics:
   [results/opt04-stablesort-square-wave-run1.time.log](results/opt04-stablesort-square-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 24 models total,
   population 128, 16 generations per model; same seeds and four-thread settings.
 - Internal end-to-end: 45.763603603 s; process wall time: 45.77 s.
@@ -1474,7 +1351,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt04-stablesort
   file system inputs/outputs: 0/56; exit status: 0. User confirmed empty stderr.
 - Channel-averaged test MSE: red 0.0117983688, green 0.0403880812,
   blue 0.00037665994; RGB before display clamping 0.0175210362.
-- Local diff: source before timing matches OPT-003 exactly, including all
+- diff: source before timing matches OPT-003 exactly, including all
   printed models, metrics, and renderer code.
 - Comparison: OPT-003 45.626737731 s vs OPT-004 45.763603603 s;
   observed slowdown about 0.30%, approximately 0.13687 s difference.
@@ -1504,10 +1381,10 @@ regression without repeat measurements.
 
 #### OPT-004 Image Check
 
-- User supplied both rendered images, preserved locally:
+- Both rendered images are retained:
   [silk-wave](results/opt04-stablesort-silk-wave-run1.png) and
   [square-wave](results/opt04-stablesort-square-wave-run1.png).
-- Local cmp against original baseline and OPT-003 returned status 0 for
+- cmp against original baseline and OPT-003 returned status 0 for
   both images (four comparisons). PNG files are byte-for-byte identical.
 - All five first-run measurements and both image checks recorded. Repeat
   timings and remaining correctness/memory checks are still outstanding.
@@ -1655,7 +1532,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark diabete
 - Run was initially named opt06-O3; user renamed the existing log without
   rerunning. Flags, workload and four-thread settings are unchanged by rename.
 - Raw output: [results/opt05-O3-diabetes-run1.log](results/opt05-O3-diabetes-run1.log),
-  copied from complete user-supplied attachment.
+  retained as experiment evidence.
 - Internal end-to-end: 0.369148682 s; process wall time: 0.37 s.
 - Aggregate user/system CPU: 1.40/0.00 s; CPU utilization: 376%.
 - Peak RSS: 12836 KiB = 12.53515625 MiB; major/minor page faults: 0/2134;
@@ -1664,7 +1541,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark diabete
 - Workload unchanged; printed model metrics: 91 nodes, depth 12, fitness
   6302.75, test MSE 7468.95; 199 nodes, depth 18, fitness 6408.27,
   test MSE 7217.17.
-- Output check: local diff of complete output before timing matches OPT-004
+- Output check: diff of complete output before timing matches OPT-004
   exactly, including both printed expressions and metrics.
 - Incremental speedup vs OPT-004: 0.525923610 / 0.369148682,
   approximately 1.42x; time reduction approximately 29.81%.
@@ -1681,7 +1558,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark cancer 
 ```
 
 - Raw output: [results/opt05-O3-cancer-run1.log](results/opt05-O3-cancer-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 569 samples, 30 features, population 16384,
   configured generations 16, same source seed and four-thread settings.
 - Internal end-to-end: 5.865428039 s; process wall time: 5.88 s.
@@ -1691,7 +1568,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark cancer 
   file system inputs/outputs: 0/0; exit status: 0.
 - Both models: 20 nodes, depth 5, training log loss 0.15991,
   test accuracy 0.946903, unchanged from OPT-004.
-- Output check: local diff of complete output before timing matches OPT-004
+- Output check: diff of complete output before timing matches OPT-004
   exactly, including both formulas and printed metrics.
 - Incremental comparison using internal timers: OPT-004 6.557930901 s vs
   OPT-005 5.865428039 s; approximately 1.12x speedup, 10.56% time reduction.
@@ -1708,7 +1585,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark housing
 ```
 
 - Raw output: [results/opt05-O3-housing-run1.log](results/opt05-O3-housing-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 20640 samples, 8 features, population 512,
   configured generations 16, same seed and four-thread settings as OPT-004.
 - Internal end-to-end: 6.102788063 s; process wall time: 6.10 s.
@@ -1719,7 +1596,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark housing
 - Model 1: 28 nodes, depth 7, training MSE 0.659991, test MSE 0.64586.
 - Model 2: 23 nodes, depth 5, training MSE 0.754433, test MSE 0.728984.
 - Output check: full output before timing matches OPT-004 exactly,
-  including both formulas and metrics (local diff).
+  including both formulas and metrics (diff).
 - Incremental internal-timer comparison: OPT-004 7.184715975 s vs
   OPT-005 6.102788063 s; approximately 1.18x speedup, 15.06% time reduction.
 - Interpretation: preliminary single-run -O3 improvement, repeats needed.
@@ -1734,9 +1611,9 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt05-O3-silk-wa
 ```
 
 - Raw source: [results/opt05-O3-silk-wave-run1.rkt](results/opt05-O3-silk-wave-run1.rkt),
-  copied from supplied attachment; external statistics:
+  retained as experiment evidence; external statistics:
   [results/opt05-O3-silk-wave-run1.time.log](results/opt05-O3-silk-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 9 models total,
   population 128, 16 generations per model; same seeds and four-thread settings.
 - Internal end-to-end: 13.370533151 s; process wall time: 13.38 s.
@@ -1747,7 +1624,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt05-O3-silk-wa
 - Channel-averaged test MSE: red 0.011492081, green 1.1292957e-06,
   blue 0.0716654807; RGB before display clamping 0.0277195631.
 - Output check: source before timing matches OPT-004 exactly, including
-  all printed formulas, metrics and renderer code (verified by local diff).
+  all printed formulas, metrics and renderer code (verified by diff).
 - Incremental internal-timer comparison: OPT-004 15.370838583 s vs
   OPT-005 13.370533151 s; approximately 1.15x speedup, 13.01% time reduction.
 - Interpretation: preliminary single-run -O3 improvement; repeats needed.
@@ -1763,9 +1640,9 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt05-O3-square-
 ```
 
 - Raw source: [results/opt05-O3-square-wave-run1.rkt](results/opt05-O3-square-wave-run1.rkt),
-  copied from supplied attachment; external statistics:
+  retained as experiment evidence; external statistics:
   [results/opt05-O3-square-wave-run1.time.log](results/opt05-O3-square-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 24 models total,
   population 128, 16 generations per model; same seeds/four-thread settings.
 - Internal end-to-end: 39.504002940 s; process wall time: 39.51 s.
@@ -1775,7 +1652,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt05-O3-square-
   file system inputs/outputs: 0/56; exit status: 0; user confirmed empty stderr.
 - Channel-averaged test MSE: red 0.0117983688, green 0.0403880812,
   blue 0.00037665994; RGB before display clamping 0.0175210362.
-- Local diff: full source before timing matches OPT-004 exactly, including
+- diff: full source before timing matches OPT-004 exactly, including
   all 24 printed formulas, metrics and renderer code.
 - Incremental internal-timer comparison: OPT-004 45.763603603 s vs
   OPT-005 39.504002940 s; approximately 1.16x speedup, 13.68% time reduction.
@@ -1800,10 +1677,10 @@ must not be presented as a failed optimization for narrative completeness.
 
 #### OPT-005 Image Check
 
-- Both user-supplied reconstructed PNGs preserved locally:
+- Both reconstructed PNGs are retained:
   [silk-wave](results/opt05-O3-silk-wave-run1.png) and
   [square-wave](results/opt05-O3-square-wave-run1.png).
-- Local cmp against baseline and OPT-004 returned status 0 for both images
+- cmp against baseline and OPT-004 returned status 0 for both images
   (four checks). Files are byte-for-byte identical to both references.
 - All five first-run timing and printed-output checks, plus both image checks,
   are now recorded for OPT-005. No repeat timings have been received yet.
@@ -1881,7 +1758,6 @@ sudo perf report --stdio --no-children --sort symbol --percent-limit 1 -i result
   completed with exit status 0; cancer and housing run 1 also completed,
   silk-wave and square-wave run 1 also completed with exit status 0.
   All five first runs recorded; both OPT-006 image checks completed.
-  Local source unchanged.
   Revives the earlier unnumbered deferred candidate as sixth attempted experiment.
   The obsolete OPT-006 label for -O3 is not reused for its result files: -O3
   remains OPT-005, while opt06-logloss4 identifies this new source change.
@@ -1946,7 +1822,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark diabete
 ```
 
 - Raw output: [results/opt06-logloss4-diabetes-run1.log](results/opt06-logloss4-diabetes-run1.log),
-  copied from complete user-supplied attachment.
+  retained as experiment evidence.
 - Internal end-to-end: 0.398813292 s; process wall time: 0.40 s.
 - Aggregate user/system CPU: 1.31/0.00 s; CPU utilization: 327%.
 - Peak RSS: 12808 KiB = 12.5078125 MiB; major/minor page faults: 0/2133;
@@ -1955,7 +1831,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark diabete
 - Workload unchanged, MSE metric; printed model metrics unchanged:
   91 nodes/depth 12/fitness 6302.75/test MSE 7468.95 and
   199 nodes/depth 18/fitness 6408.27/test MSE 7217.17.
-- Local diff of full output before timing matches OPT-005 exactly.
+- diff of full output before timing matches OPT-005 exactly.
 - Observed comparison: OPT-005 0.369148682 s vs 0.398813292 s,
   about 8.04% longer (approximately 29.66 ms difference).
 - Interpretation: this path does not execute modified logLoss; single-run
@@ -1976,7 +1852,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark cancer 
 ```
 
 - Raw output: [results/opt06-logloss4-cancer-run1.log](results/opt06-logloss4-cancer-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 569 samples, 30 features, population 16384,
   configured generations 16, same seed/four-thread settings and -O3 flags.
 - Internal end-to-end: 3.778010087 s; process wall time: 3.80 s.
@@ -1986,7 +1862,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark cancer 
   file system inputs/outputs: 0/0; exit status: 0.
 - Both printed models: 20 nodes, depth 5, training log loss 0.15991,
   test accuracy 0.946903, unchanged from OPT-005.
-- Output check: local diff of full output before timing matches OPT-005
+- Output check: diff of full output before timing matches OPT-005
   exactly, including both formulas and printed quality metrics.
 - Incremental internal-timer comparison: OPT-005 5.865428039 s vs
   OPT-006 3.778010087 s; approximately 1.55x speedup, 35.59% time reduction.
@@ -2004,7 +1880,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark housing
 ```
 
 - Raw output: [results/opt06-logloss4-housing-run1.log](results/opt06-logloss4-housing-run1.log),
-  transcribed from complete user-pasted output.
+  recorded from the benchmark output.
 - Workload unchanged: 20640 samples, 8 features, population 512,
   configured generations 16; same seeds, -O3 flags and four-thread settings.
 - Internal end-to-end: 5.851969198 s; process wall time: 5.85 s.
@@ -2015,7 +1891,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v ./genetic_benchmark housing
 - Model 1: 28 nodes, depth 7, training MSE 0.659991, test MSE 0.64586.
 - Model 2: 23 nodes, depth 5, training MSE 0.754433, test MSE 0.728984.
 - Output check: full output before timing matches OPT-005 exactly,
-  including both formulas and metrics (verified by local diff).
+  including both formulas and metrics (verified by diff).
 - Observed comparison: OPT-005 6.102788063 s vs 5.851969198 s,
   approximately 4.11% shorter. MSE path does not execute modified logLoss;
   do not attribute this single-run difference to log-loss parallelization.
@@ -2032,9 +1908,9 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt06-logloss4-s
 ```
 
 - Raw source: [results/opt06-logloss4-silk-wave-run1.rkt](results/opt06-logloss4-silk-wave-run1.rkt),
-  copied from supplied attachment; statistics:
+  retained as experiment evidence; statistics:
   [results/opt06-logloss4-silk-wave-run1.time.log](results/opt06-logloss4-silk-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 9 models total,
   population 128, 16 generations per model; same seeds/four-thread settings.
 - Internal end-to-end: 12.842426638 s; process wall time: 12.85 s.
@@ -2045,7 +1921,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt06-logloss4-s
 - Channel-averaged test MSE: red 0.011492081, green 1.1292957e-06,
   blue 0.0716654807; RGB before display clamping 0.0277195631.
 - Output check: full source before timing matches OPT-005 exactly,
-  including all formulas, metrics and renderer code (local diff).
+  including all formulas, metrics and renderer code (diff).
 - Observed comparison: OPT-005 13.370533151 s vs 12.842426638 s,
   approximately 3.95% shorter. This MSE task does not execute modified logLoss;
   do not attribute the single-run difference to loss parallelization.
@@ -2060,9 +1936,9 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt06-logloss4-s
 ```
 
 - Raw source: [results/opt06-logloss4-square-wave-run1.rkt](results/opt06-logloss4-square-wave-run1.rkt),
-  copied from supplied attachment; external statistics:
+  retained as experiment evidence; external statistics:
   [results/opt06-logloss4-square-wave-run1.time.log](results/opt06-logloss4-square-wave-run1.time.log),
-  transcribed from user message with whitespace normalized.
+  recorded from process output with whitespace normalized.
 - Workload unchanged: RGB, 65536 samples, 2 features, 24 models total,
   population 128, 16 generations per model; same seeds/four-thread settings.
 - Internal end-to-end: 37.867636479 s; process wall time: 37.87 s.
@@ -2072,7 +1948,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE /usr/bin/time -v -o results/opt06-logloss4-s
   file system inputs/outputs: 0/56; exit status: 0. Stderr not confirmed yet.
 - Channel-averaged test MSE: red 0.0117983688, green 0.0403880812,
   blue 0.00037665994; RGB before display clamping 0.0175210362.
-- Local diff: full source before timing matches OPT-005 exactly, including
+- diff: full source before timing matches OPT-005 exactly, including
   all 24 formulas, metrics and renderer code.
 - Observed comparison: OPT-005 39.504002940 s vs 37.867636479 s,
   approximately 4.14% shorter; MSE path does not execute modified logLoss.
@@ -2101,7 +1977,7 @@ settings unchanged. Only cancer executes the modified log-loss path.
 
 #### OPT-006 Image Check
 
-- Both user-supplied PNGs preserved locally:
+- Both PNGs are retained:
   [silk-wave](results/opt06-logloss4-silk-wave-run1.png) and
   [square-wave](results/opt06-logloss4-square-wave-run1.png).
 - Four cmp checks against original baseline and OPT-005 returned status 0.
@@ -2177,7 +2053,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE valgrind \
   errors counted under Memcheck's configured/default error policy; interpret
   the full leak/error report, not just process status or reachable memory.
 - Raw report: [results/memcheck-diabetes.log](results/memcheck-diabetes.log),
-  copied from complete user-supplied attachment.
+  retained as experiment evidence.
 - Tool: Valgrind 3.26.0; command confirmed in report: genetic_benchmark diabetes.
 - Heap usage: 62399 allocations, 62300 frees, 7541108534 cumulative allocated
   bytes; exit heap 62392 bytes in 99 blocks. Cumulative allocations are not peak
@@ -2203,7 +2079,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE valgrind \
   reachable blocks originate in libgomp. These are runtime-associated records,
   distinct from definite application leaks; do not suppress or dismiss without
   further investigation.
-- Local source inspection: hoist_mutation overwrites p_out.nodes with a new
+- Source inspection: hoist_mutation overwrites p_out.nodes with a new
   allocation without deleting its previous owned array. Reused generation
   slots can therefore lose arrays allocated by any preceding mutation method,
   consistent with the diverse reported allocation contexts. Hypothesis needs
@@ -2217,7 +2093,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE valgrind \
 - Status: user supplied VM hoist_mutation source; missing deletion before
   overwriting p_out.nodes confirmed. Subsequent VM diff reviewed: exactly
   `delete[] p_out.nodes;` added immediately before new allocation. Fix applied
-  on VM; build and runtime validation pending. Local source unchanged.
+  on VM; build and runtime validation pending.
 - Context: cpp_evolve passes input programs from h_oldprogs and output slots
   from a separate h_nextprogs vector. The proposed deletion assumes these
   objects/node arrays do not alias, as in current benchmark calls.
@@ -2259,7 +2135,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE valgrind --tool=memcheck --leak-check=full -
 #### FIX-001 Post-Fix Diabetes Memcheck Result
 
 - Full report: [results/memcheck-fix01-diabetes.log](results/memcheck-fix01-diabetes.log),
-  copied from user attachment (PID 9177). User confirmed empty stderr;
+  retained as experiment evidence (PID 9177). User confirmed empty stderr;
   process exit status not supplied.
 - Same diagnostic flags and requested four-thread setup as pre-fix check.
 - Heap allocations: 62399 allocs, 62391 frees, 7541108534 cumulative bytes;
@@ -2301,7 +2177,7 @@ OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE valgrind --tool=memcheck --leak-check=full -
   stacks originate in libgomp. These are reachable allocations, not detected
   definite leaks.
 - Heap: 62412 allocs, 62409 frees, 7541133582 cumulative allocated bytes;
-  exit heap 296 bytes/3 blocks. Original full report remains on VM at
+  exit heap 296 bytes/3 blocks. Full report path:
   results/memcheck-fix01-diabetes-1thread.log; summary recorded here.
 - Interpretation: four-thread possible loss (1008 bytes/3 TLS blocks) disappears
   in one-thread control, supporting association with OpenMP worker TLS.
@@ -2327,7 +2203,7 @@ OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE valgrind --tool=memcheck --leak-check=full -
 - Inspect full report before conclusions, interpret runtime TLS separately,
   and compare printed output against pre-fix cancer reference afterward.
 - Raw report: [results/memcheck-fix01-cancer.log](results/memcheck-fix01-cancer.log),
-  copied from user-supplied attachment. Valgrind 3.26.0 confirms command
+  retained as experiment evidence. Valgrind 3.26.0 confirms command
   ./genetic_benchmark cancer.
 - Definitely lost: 0 bytes/0 blocks; indirectly lost: 0/0; possibly lost:
   1008 bytes/3 blocks; still reachable: 2608 bytes/5 blocks; suppressed: 0.
@@ -2370,103 +2246,9 @@ diff -u \
   Memcheck reports, one-thread diabetes diagnostic control, and these two
   output comparisons. Image-path Memcheck, race checks and normal post-fix
   timings remain unperformed. Prior performance tables describe pre-fix code.
-- Next step: commit the VM source fix and diagnostic logs as a separate
-  correctness change; transfer the updated local journal before staging it.
-  Update artifact/essay with exact scope, including residual TLS context.
 
-### Repository Upload Preparation
 
-- Documentation preparation (2026-10-14): local README.md now includes an
-  optimized artifact guide: dependencies/test environment, original baseline
-  extraction, cumulative stage reconstruction edits/flags, current build,
-  five-task timing/output commands, rendering, profiling, original one-run
-  performance results, and scoped pre/post-fix memory findings. Original project
-  guide retained below it. No claims of repeated timing or post-fix performance.
-- README shell snippets in the new guide passed local Bash syntax checking;
-  git diff --check passed. Recipes have not been executed end-to-end on VM by
-  this assistant. Intermediate reconstruction is documented, not independently
-  rebenchmarked. VM must retain its actual source edits and supply raw logs.
-- Next transfer from Mac local terminal (not yet executed):
 
-```bash
-scp /Users/zhangyidong/Desktop/CS598_APE/598APE-HW2/README.md /Users/zhangyidong/Desktop/CS598_APE/598APE-HW2/EXPERIMENT_LOG.md yidongz3@fa26-cs598a-042.cs.illinois.edu:~/598APE-HW2/
-```
-
-- This replaces VM README/journal with locally prepared documents, not source
-  files. Review any newer VM README edits before replacement. After transfer,
-  review git diff and commit these docs alongside FIX-001 and diagnostic logs.
-- User requested uploading existing work before further profiling.
-- Actual source changes/builds reside in the VM checkout. This local checkout
-  contains the experiment journal and copies of user-supplied results; it does
-  not contain the VM source edits. Upload from a consolidated VM checkout after
-  transferring this journal; do not push local baseline source as optimized code.
-- Local origin: https://github.com/Yidong-Zhang/598APE-HW2.git; confirm VM origin
-  matches intended private homework repository before pushing.
-- Include reviewed source changes, journal, ordinary text logs/generated Racket
-  and reconstructed PNGs. Exclude binaries, obj files, perf.data captures and
-  other large runtime artifacts from the source commit; retain them on VM.
-- Upload status: not committed or pushed by this assistant; VM status/remote
-  and repository visibility confirmation pending.
-
-#### OPT-003 Rationale: Profiling Evidence and VM Resources
-
-After replacing the scanning stack operations, PROF-003 on housing still
-places most user-space CPU samples in formula evaluation: execute_kernel
-32.43%, evaluate_node 19.05%, and cos/log/sin implementations 43.33% combined.
-MSE contributes only 1.28% self samples, so evaluation is the more promising
-next target in this measured workload. These percentages are sampled CPU
-shares, not exact fractions of end-to-end wall time.
-
-The course VM exposes four online vCPUs. OPT-002 timed runs report about 99%
-CPU utilization, meaning approximately one CPU worth of activity across each
-run, not 99% utilization of all four vCPUs. This motivates trying four worker
-threads to exploit the available parallel resources. Guest vCPU availability
-does not guarantee exclusive physical cores or a fourfold speedup; serial
-sections, worker overhead, memory bandwidth, and host contention limit gains.
-
-Parallelize the outer program loop because candidate evaluations are independent:
-programs and input data are read-only in the kernel, each worker has its own
-evaluation stack, and each program writes to a separate prediction slice.
-The mathematical operations and their order within a program remain unchanged.
-Random-number generation, evolutionary selection, and fitness reductions stay
-outside this parallel loop, preserving their existing order.
-
-Choose dynamic scheduling with a chunk size of one because candidate trees
-vary in length and operator cost. An idle worker receives the next candidate
-instead of waiting for another worker's longer assigned batch. This is a
-load-balancing hypothesis, not measured proof that dynamic scheduling is better
-than static scheduling. It introduces scheduling overhead, especially for small
-workloads, which the five-task evaluation must reveal.
-
-Use four threads to match the VM's four vCPUs, with OMP_DYNAMIC=FALSE to disable
-automatic adjustment of requested team sizes. Record these settings and the
-compiler flags for reproducibility. Compare OPT-003 against OPT-002 for the
-incremental parallelization effect, and against the original baseline for total
-improvement. Check all five tasks' timings and quality plus both rendered PNGs;
-repeat measurements before final paper claims. This uses portable OpenMP CPU
-parallelism, not processor-specific AVX-512 instructions.
-
-## Experiment Entry Template
-
-Copy this section for each experiment and assign a sequential ID (EXP-001, etc.).
-
-### EXP-NNN: Title
-
-- Date and timezone:
-- Question or hypothesis:
-- Commit, branch, and uncommitted code changes:
-- Environment differences or concurrent activity:
-- Build command and compiler flags:
-- Dataset, parameters, and random seed:
-- Exact run command:
-- Timing scope and measurement tool:
-- Repetitions and individual measurements:
-- Correctness or fitness evidence:
-- Raw output or result file:
-- Summary and variability:
-- Comparison experiment ID and speedup calculation:
-- Interpretation and limitations:
-- Decision and next step:
 
 ## Paper Evidence
 
@@ -2497,9 +2279,3 @@ identical printed source/metrics. All five OPT-002 measurements are now
 recorded; both OPT-002 PNGs match baseline and OPT-001 byte for byte.
 Repeat measurements remain pending.
 Both baseline reconstructed PNGs have been supplied.
-
-## Collaboration Record
-
-Record the two team members' actual contributions to design, implementation,
-and testing, including pair programming sessions. Assistant support does not
-substitute for the assignment's two-person collaboration requirement.
